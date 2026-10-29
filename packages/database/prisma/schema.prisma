@@ -1,0 +1,246 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CITIZEN
+  PANCHAYAT_OFFICER
+  BLOCK_ADMIN
+  DISTRICT_ADMIN
+  SUPER_ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum CasteCategory {
+  GENERAL
+  OBC
+  SC
+  ST
+  OTHER
+}
+
+enum GrievanceCategory {
+  DRINKING_WATER
+  ELECTRICITY_POLE
+  ROAD_REPAIR
+  SANITATION_DRAINAGE
+  HEALTH_ANGANWADI
+  PENSION_RATION
+  OTHER
+}
+
+enum GrievanceStatus {
+  SUBMITTED
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  ESCALATED
+  REJECTED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  EMERGENCY
+}
+
+model GramPanchayat {
+  id          String      @id @default(uuid())
+  code        String      @unique // LGD (Local Government Directory) code
+  name        String
+  nameHi      String?
+  block       String
+  district    String
+  state       String
+  pincode     String
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  users       User[]
+  grievances  Grievance[]
+
+  @@index([state, district, block])
+}
+
+model User {
+  id              String         @id @default(uuid())
+  phoneNumber     String         @unique
+  fullName        String
+  role            Role           @default(CITIZEN)
+  isVerified      Boolean        @default(false)
+  preferredLocale String         @default("hi")
+  panchayatId     String?
+  panchayat       GramPanchayat? @relation(fields: [panchayatId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  citizenProfile  CitizenProfile?
+  grievances      Grievance[]
+  timelineEntries GrievanceTimeline[]
+  applications    SchemeApplication[]
+
+  @@index([phoneNumber])
+}
+
+model CitizenProfile {
+  id                String         @id @default(uuid())
+  userId            String         @unique
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gender            Gender?
+  dateOfBirth       DateTime?
+  casteCategory     CasteCategory?
+  annualIncome      Decimal?       @db.Decimal(12, 2)
+  landHoldingAcres  Decimal?       @default(0.0) @db.Decimal(8, 2)
+  hasIrrigation     Boolean        @default(false)
+  isBplCardHolder   Boolean        @default(false)
+  occupation        String?        // FARMER, ARTISAN, SMALL_BUSINESS, LABOR, STUDENT
+  differentlyAbled  Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Grievance {
+  id              String               @id @default(uuid())
+  ticketId        String               @unique // Format: GS-2026-XXXXX
+  citizenId       String
+  citizen         User                 @relation(fields: [citizenId], references: [id])
+  panchayatId     String
+  panchayat       GramPanchayat        @relation(fields: [panchayatId], references: [id])
+  category        GrievanceCategory
+  title           String
+  description     String
+  voiceNoteUrl    String?
+  latitude        Float?
+  longitude       Float?
+  addressLandmark String?
+  status          GrievanceStatus      @default(SUBMITTED)
+  priority        Priority             @default(MEDIUM)
+  slaDueDate      DateTime
+  resolvedAt      DateTime?
+  resolutionProof String?              // Photo URL of repaired site
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  attachments     GrievanceAttachment[]
+  timeline        GrievanceTimeline[]
+
+  @@index([panchayatId, status])
+  @@index([citizenId])
+}
+
+model GrievanceAttachment {
+  id          String    @id @default(uuid())
+  grievanceId String
+  grievance   Grievance @relation(fields: [grievanceId], references: [id], onDelete: Cascade)
+  fileUrl     String
+  fileType    String    // image/webp, audio/webm
+  caption     String?
+  createdAt   DateTime  @default(now())
+}
+
+model GrievanceTimeline {
+  id          String          @id @default(uuid())
+  grievanceId String
+  grievance   Grievance       @relation(fields: [grievanceId], references: [id], onDelete: Cascade)
+  actorId     String?
+  actor       User?           @relation(fields: [actorId], references: [id])
+  status      GrievanceStatus
+  actionText  String
+  notes       String?
+  createdAt   DateTime        @default(now())
+
+  @@index([grievanceId])
+}
+
+model Scheme {
+  id                  String              @id @default(uuid())
+  slug                String              @unique
+  titleEn             String
+  titleHi             String
+  category            String              // AGRICULTURE, HEALTH, HOUSING, EDUCATION, PENSION
+  department          String
+  fundingType         String              // CENTRAL, STATE
+  directBenefitAmount String?
+  briefDescriptionEn  String
+  briefDescriptionHi  String
+  eligibilitySummaryEn String
+  eligibilitySummaryHi String
+  requiredDocs        String[]
+  officialApplyUrl    String?
+  isActive            Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  criteria            SchemeCriterion[]
+  applications        SchemeApplication[]
+
+  @@index([category, isActive])
+}
+
+model SchemeCriterion {
+  id           String   @id @default(uuid())
+  schemeId     String
+  scheme       Scheme   @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  fieldKey     String   // e.g. "maxAnnualIncome", "maxLandHolding", "gender"
+  operator     String   // "LTE", "GTE", "EQUALS", "IN"
+  targetValue  String   // serialized value to compare
+  description  String
+}
+
+model SchemeApplication {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  schemeId      String
+  scheme        Scheme    @relation(fields: [schemeId], references: [id])
+  status        String    @default("APPLIED") // APPLIED, VERIFIED, APPROVED, DISBURSED
+  applicationNo String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, schemeId])
+}
+
+model MandiPrice {
+  id          String   @id @default(uuid())
+  mandiName   String
+  district    String
+  state       String
+  commodity   String   // Wheat, Mustard, Paddy, Soybean, Potato
+  variety     String?
+  minPrice    Decimal  @db.Decimal(10, 2)
+  maxPrice    Decimal  @db.Decimal(10, 2)
+  modalPrice  Decimal  @db.Decimal(10, 2) // Common prevailing price per quintal
+  priceUnit   String   @default("Rs/Quintal")
+  arrivalDate DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([state, district, commodity, arrivalDate])
+}
+
+model WeatherAlert {
+  id          String   @id @default(uuid())
+  district    String
+  state       String
+  alertType   String   // HEAVY_RAIN, FROST, HEATWAVE, HAILSTORM
+  severity    String   // ADVISORY, WATCH, WARNING
+  messageEn   String
+  messageHi   String
+  validUntil  DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([state, district, validUntil])
+}

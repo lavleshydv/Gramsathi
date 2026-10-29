@@ -1,0 +1,31 @@
+{
+  "name": "gramsathi-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GramSathi - Offline-First Rural Civic Governance & Agri-Prosperity Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "db:migrate": "npm run migrate --workspace=packages/database",
+    "db:seed": "npm run seed --workspace=packages/database",
+    "db:studio": "npm run studio --workspace=packages/database"
+  },
+  "keywords": [
+    "rural-tech",
+    "civic-tech",
+    "agriculture",
+    "panchayat",
+    "offline-first",
+    "pwa",
+    "indic",
+    "gemini"
+  ],
+  "author": "GramSathi Engineering Team",
+  "license": "MIT"
+}
