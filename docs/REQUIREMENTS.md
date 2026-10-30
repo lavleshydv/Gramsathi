@@ -1,97 +1,135 @@
-# 📋 GramSathi Software Requirements Specification (SRS) & System Prerequisites
+# 📋 GramSathi AI — Software Requirements Specification (SRS) & System Prerequisites
 
-**Document Version:** 1.0.0  
-**Project:** GramSathi (ग्राम साथी)  
-**Classification:** Rural Civic Governance, AI Welfare Discovery & Agri-Prosperity Platform  
-
----
-
-## 1. Dependency & Package Management Equivalent
-
-In the Node.js & TypeScript ecosystem, there is no single `requirements.txt` file as in Python. Instead, requirements are tracked across two standard files:
-
-| File | Purpose & Equivalent | Location |
-| :--- | :--- | :--- |
-| **`package.json`** | Direct equivalent to `requirements.txt` + `setup.py`. Lists required runtime packages (`dependencies`) and tooling packages (`devDependencies`). | [package.json](file:///c:/Users/WINDOWS%2011/OneDrive/Desktop/GramSathi/package.json) |
-| **`package-lock.json`** | Exact cryptographic lockfile (equivalent to `poetry.lock` or `pip freeze > requirements.lock`). Pins exact tree versions. | [package-lock.json](file:///c:/Users/WINDOWS%2011/OneDrive/Desktop/GramSathi/package-lock.json) |
+**Document Version:** 2.0.0  
+**Project:** GramSathi AI (ग्राम साथी)  
+**Core Technical Innovation:** Evidence-Linked, Confidence-Gated Application Generation  
+**Classification:** Voice-First Government Application Preparation & Evidence Reconciliation Platform  
 
 ---
 
-## 2. System & Runtime Prerequisites
+## 1. System & Runtime Prerequisites
 
-To run GramSathi in local development, staging, or production:
+### 1.1 Hardware Specifications
+- **Development / Evaluation Server:** Minimum 4 vCPU, 8 GB RAM, 25 GB SSD storage (supports local OCR & text processing).
+- **Client Mobile Device:** Android 9.0+ / iOS 14+, Minimum 2 GB RAM, Camera sensor, Microphone, Touchscreen (minimum 48x48px touch targets).
 
-### 2.1 Hardware Requirements
-- **Server Minimum:** 2 vCPU, 4GB RAM, 20GB SSD Storage (Production: 4 vCPU, 8GB RAM).
-- **Client Device:** Android 9.0+, Chrome 80+ / Mobile Safari / Edge, 2GB RAM minimum, GPS chip, Camera sensor.
-
-### 2.2 Software & Tooling Runtimes
-- **Node.js:** `v20.x` or `v22.x` (LTS installed in `AppData\Local\Programs\node-v20.18.0-win-x64`)
-- **Package Manager:** `npm` v10+ (or `pnpm` v9+)
-- **Database:** PostgreSQL `v15+` with **PostGIS** extension (`CREATE EXTENSION postgis;`)
-- **In-Memory Cache & Queue:** Redis `v7.0+`
-- **Object Storage:** AWS S3 or MinIO (for grievance evidence photos & audio notes)
+### 1.2 Software & Runtimes
+- **Backend Runtime:** Python 3.10+ / 3.11 (FastAPI, SQLAlchemy Async, Pydantic v2).
+- **Mobile Runtime:** Flutter 3.19+ / Dart 3.3+.
+- **Database:** PostgreSQL 15+ (Relational data, audit trails, and versioned rule storage).
+- **OCR Engine:** Tesseract 5.x / EasyOCR (interfaced via swappable service adapters).
+- **Speech Processing:** Web Speech / Indic STT service adapter with fallback text transcript editor.
 
 ---
 
-## 3. Functional Requirements (FR)
+## 2. Functional Requirements (FR)
 
-### FR-1: Passwordless Mobile Authentication & Citizen Profiles
-- **FR-1.1:** The system shall authenticate citizens using Indian mobile numbers (`+91XXXXXXXXXX`) with 6-digit SMS OTPs.
-- **FR-1.2:** The citizen profile shall record demographic attributes: land holding (in acres), caste category (General/OBC/SC/ST), annual household income, and occupation.
-- **FR-1.3:** The system must never store unmasked 12-digit Aadhaar numbers, adhering strictly to the DPDP Act.
+### FR-1: Session & Consent Management
+- **FR-1.1:** The system shall establish an authenticated, encrypted user session for each application attempt.
+- **FR-1.2:** The system must record explicit citizen consent detailing the purpose of document processing under the DPDP Act.
+- **FR-1.3:** The platform shall never store raw, unmasked 12-digit Aadhaar numbers.
 
-### FR-2: AI Scheme Recommendation Engine
-- **FR-2.1:** The engine shall match citizen profiles against criteria rules for 50+ central and state schemes (e.g. PM-KISAN, PM Awas Yojana, Ayushman Bharat).
-- **FR-2.2:** Each scheme record must display benefit amounts, required document checklists, and direct official application links.
-- **FR-2.3:** The platform shall provide an audio playback button (`[🔊 सुनिए]`) for every scheme using Indic speech synthesis.
+### FR-2: Document Management & Private Storage
+- **FR-2.1:** The system shall accept PDF, JPEG, and PNG document uploads with strict MIME-type and size validation (maximum 10 MB per file).
+- **FR-2.2:** Uploaded files must be stored outside public web access using private, cryptographically generated storage identifiers.
+- **FR-2.3:** The system must compute and store a SHA-256 hash for every uploaded document for integrity verification.
+- **FR-2.4:** The platform must provide an explicit hard-purge capability to delete documents and derived evidence upon user request.
 
-### FR-3: Civic Grievance Geo-Redressal
-- **FR-3.1:** Citizens shall be able to lodge issues across 6 categories: Drinking Water, Electricity/Poles, Roads, Sanitation/Drainage, Health/Anganwadi, and Other.
-- **FR-3.2:** The system must support zero-typing reporting via camera capture, automated HTML5 GPS location tagging, and voice notes.
-- **FR-3.3:** The system must auto-generate a unique tracking ticket (e.g., `GS-2026-XXXXX`).
-- **FR-3.4:** An automated SLA escalation engine shall monitor grievance age and escalate tickets unresolved after 7 days to the Block Development Officer (BDO).
+### FR-3: OCR & Field Provenance Extraction
+- **FR-3.1:** The system shall extract text candidates from uploaded documents via pluggable OCR adapters.
+- **FR-3.2:** For every extracted candidate, the system must create an immutable `FieldEvidence` record containing:
+  - Source document ID
+  - Page number
+  - Bounding box coordinates (`x, y, width, height`)
+  - Raw extracted text and normalized value
+  - OCR engine name and extraction confidence score ($\mathcal{C}_{ocr}$)
 
-### FR-4: Real-Time Mandi Commodity Ingestion
-- **FR-4.1:** The platform shall ingest daily minimum, maximum, and modal prices across regional APMC Mandis (via Agmarknet feeds).
-- **FR-4.2:** The system shall compute proximity in kilometers from the citizen's Gram Panchayat to surrounding mandis using PostGIS distance functions.
-- **FR-4.3:** The UI shall display price trends (Up/Down indicators with rupee delta) and provide single-tap audio price reading.
+### FR-4: Cross-Document Evidence Reconciliation & Conflict Detection
+- **FR-4.1:** The system shall match corresponding fields across distinct documents (e.g., matching name across Aadhaar, Marksheet, and Income Certificate).
+- **FR-4.2:** The system must deterministically classify evidence comparisons into:
+  - `EXACT_MATCH`: Complete normalized string equivalence.
+  - `FORMAT_VARIATION`: Non-substantive date, case, or punctuation differences.
+  - `SPELLING_OR_TRANSLITERATION_VARIATION`: Minor edit distance or Indic transliteration variations requiring user confirmation.
+  - `MATERIAL_CONTRADICTION`: Conflicting dates, distinct names, or differing monetary figures.
+- **FR-4.3:** The system must record detected conflicts as distinct entities and preserve all conflicting evidence trails intact.
 
-### FR-5: Gram Panchayat Administrative Portal
-- **FR-5.1:** Role-Based Access Control (RBAC) shall isolate records so that Panchayat Officers can only review complaints within their assigned village.
-- **FR-5.2:** Officers shall have workflows to acknowledge, assign to field workers, and resolve grievances with photographic proof.
-- **FR-5.3:** Status transitions must automatically dispatch SMS notifications to the citizen.
+### FR-5: Confidence Management & Gated Draft Generation
+- **FR-5.1:** The system shall track field reliability across a formal state machine (`EXTRACTED`, `NEEDS_REVIEW`, `CONFLICTED`, `USER_CONFIRMED`, `USER_CORRECTED`, `ELIGIBLE_FOR_DRAFT`).
+- **FR-5.2:** No field in `CONFLICTED`, `NEEDS_REVIEW`, or `MISSING` state shall be permitted to enter the final application draft.
+- **FR-5.3:** The draft generation controller must generate a verified, editable draft summary with an auditable readiness score only when all mandatory fields are in the `ELIGIBLE_FOR_DRAFT` state.
 
----
+### FR-6: Scheme-Specific Rules & Dependency-Aware Validation
+- **FR-6.1:** Scheme eligibility rules shall be defined in versioned JSON configuration schemas.
+- **FR-6.2:** The system shall evaluate statutory rules including income ceilings, minimum mark percentages, category quotas, and required document sets.
+- **FR-6.3:** The system must maintain a dependency graph (DAG) to mark dependent checks dirty and re-evaluate only affected rules upon field mutation.
 
-## 4. Non-Functional Requirements (NFR)
-
-### NFR-1: Network Resilience & Low Bandwidth Optimization
-- The application initial JavaScript payload must not exceed **85 KB gzipped**.
-- The platform shall be fully functional over intermittent 2G/3G cellular networks (50–250 kbps).
-- Images must be downsampled client-side to WebP format (<200 KB) before uploading.
-
-### NFR-2: Offline-First Capability (PWA)
-- The application must install as a Progressive Web App (PWA) on mobile devices via `manifest.json`.
-- When offline (`navigator.onLine === false`), grievance submissions and profile edits must be persisted to local IndexedDB (`outbox_mutations`) and auto-synced upon reconnection.
-
-### NFR-3: Outdoor Accessibility & High Contrast (WCAG AAA)
-- UI buttons and interactive chips must have a minimum tap area of **48x48 pixels**.
-- Text contrast ratio against backgrounds must exceed **7:1** for outdoor sunlight visibility.
-- Navigation must rely primarily on clear iconography and bilingual labels (Hindi + English).
-
-### NFR-4: Data Privacy & Compliance
-- Full compliance with the **Digital Personal Data Protection (DPDP) Act, 2023**.
-- Field-level tokenization for personal identity attributes with explicit consent logs.
+### FR-7: Hindi Voice Assistant & Accessibility
+- **FR-7.1:** The mobile client shall support hands-free Hindi speech input with an editable transcript interface.
+- **FR-7.2:** The system shall provide spoken audio explanations (`[🔊 सुनिए]`) of required documents, eligibility rules, and detected inconsistencies.
 
 ---
 
-## 5. Third-Party Integrations & API Keys
+## 3. Non-Functional Requirements (NFR)
 
-| Service | Purpose | Required Key / Env Variable |
-| :--- | :--- | :--- |
-| **Google Gemini 1.5 Flash** | Multimodal damage image assessment & natural language Indic scheme Q&A | `GEMINI_API_KEY` |
-| **SMS Gateway (Fast2SMS / Gupshup)** | Mobile OTP dispatch & grievance SLA status SMS alerts | `SMS_GATEWAY_API_KEY`, `SMS_SENDER_ID` |
-| **PostgreSQL + PostGIS** | Relational data & village boundary spatial indexing | `DATABASE_URL` |
-| **Redis** | Mandi caching, rate limiting & BullMQ background jobs | `REDIS_URL` |
-| **S3 / MinIO** | Storage for grievance photos and audio attachments | `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` |
+### NFR-1: Determinism & Auditability
+- **NFR-1.1:** Official scheme eligibility decisions must be 100% deterministic and auditable. Generative AI / LLMs must not make legal eligibility rulings.
+- **NFR-1.2:** Every user override or field confirmation must be recorded in an immutable audit log with actor ID, timestamp, prior value, and new value.
+
+### NFR-2: Low-Bandwidth & Network Interruption Resilience
+- **NFR-2.1:** Mobile client initial payload must not exceed 15 MB.
+- **NFR-2.2:** Uploads interrupted by poor rural connectivity must be resumable without restarting the workflow or duplicating backend processing.
+- **NFR-2.3:** Local draft checkpoints must persist on the device so offline users can review progress before reconnection.
+
+### NFR-3: High Outdoor Contrast & Touch Ergonomics (WCAG AAA)
+- **NFR-3.1:** All interactive UI buttons and tap targets must have a minimum dimension of **48x48 pixels**.
+- **NFR-3.2:** Color contrast ratios must exceed **7:1** against backgrounds for outdoor visibility under direct midday sunlight.
+
+---
+
+## 4. Backend Dependencies Specification (`backend/requirements.txt`)
+
+```text
+# Core Web Framework & ASGI
+fastapi==0.115.4
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+pydantic-settings==2.6.1
+
+# Database & ORM
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.13.3
+psycopg2-binary==2.9.10
+
+# Object Storage & Private File Handling
+aiofiles==24.1.0
+python-multipart==0.0.17
+cryptography==43.0.3
+
+# Document Processing & OCR Layer (Swappable Adapters)
+pytesseract==0.3.13
+easyocr==1.7.2
+pdf2image==1.17.0
+PyPDF2==3.0.1
+Pillow==11.0.0
+opencv-python-headless==4.10.0.84
+
+# Text Normalization & Fuzzy Reconciliation
+rapidfuzz==3.10.1
+jellyfish==1.1.0
+indic-nlp-library==0.92
+
+# Dependency Graph & Validation
+networkx==3.4.2
+
+# Speech & Voice Interface Adapter
+soundfile==0.12.1
+numpy==1.26.4
+
+# Testing & Quality Assurance
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+httpx==0.27.2
+faker==30.8.2
+```

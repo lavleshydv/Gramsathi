@@ -1,23 +1,21 @@
-# 🏗️ GramSathi System Architecture Specification
+# 🏗️ GramSathi AI — System Architecture Specification
 
-**Document Version:** 1.0.0  
-**Target Environment:** Cloud-native (Containerized / Kubernetes / AWS / GCP / DigitalOcean) + Edge PWA  
-**System Classification:** High-Availability, Low-Bandwidth Optimized, Offline-Resilient Civic & Agri Platform  
+**Document Version:** 2.0.0  
+**Project:** GramSathi AI (ग्राम साथी)  
+**Core Technical Innovation:** Evidence-Linked, Confidence-Gated Application Generation  
+**Classification:** Voice-First Government Application Preparation & Evidence Reconciliation Platform  
 
 ---
 
-## 1. Architectural Drivers & Non-Functional Requirements (NFRs)
+## 1. Architectural Vision & Core Innovation
 
-Rural digital infrastructure imposes specific constraints that standard urban web applications do not address:
+GramSathi AI is an offline-resilient, voice-first assistant designed to help rural citizens prepare, verify, and complete complex government welfare and scholarship applications without administrative rejection.
 
-| Constraint / NFR | Target Metric | Architectural Solution |
-| :--- | :--- | :--- |
-| **Network Quality** | High packet drop, intermittent 2G/3G (50-250 kbps) | Aggressive PWA asset pre-caching, Gzip/Brotli compression, sub-80KB initial JS chunk, WebP/AVIF images. |
-| **Device Capabilities** | Low-cost Android devices ($60-$120), 2GB RAM | Minimal DOM depth, virtualized lists for Mandi feeds, zero heavy client-side computation. |
-| **Availability / Offline** | 100% grievance logging & profile editing available offline | IndexedDB local storage with persistent Outbox sync queue and background service workers. |
-| **Language & Literacy** | Multi-dialect Indic languages, varying functional literacy | Iconographic navigation, dual-language bilingual rendering, Voice STT/TTS pipelines. |
-| **Spatial Precision** | Exact location of civic breakdown (pothole, water leak, pole) | PostGIS spatial geometry (`ST_Point`), automated reverse geocoding with panchayat boundary bounding boxes. |
-| **Data Privacy** | Indian Digital Personal Data Protection (DPDP) Act | Strict field-level tokenization for citizen identities, role-based access control, explicit consent storage. |
+Unlike traditional OCR or generic LLM-based form fillers that indiscriminately extract and overwrite text, GramSathi AI implements an **Evidence Intelligence Engine**:
+- **Field Provenance**: Every extracted field retains an immutable, auditable link to its source document, page number, bounding box coordinates, and extraction engine metadata.
+- **Cross-Document Reconciliation**: Multiple documents (e.g., Aadhaar, Marksheet, Income Certificate) claiming the same identity attribute are matched and compared deterministically.
+- **Conflict & Uncertainty Classification**: Inconsistencies are classified (Exact Match, Formatting Difference, Spelling/Transliteration Variation, Material Contradiction, Missing/Unreadable).
+- **Confidence-Gated Draft Generation**: A formal field reliability state machine ensures that unverified, low-confidence, or conflicted data can **never silently enter an official application draft**.
 
 ---
 
@@ -27,21 +25,23 @@ Rural digital infrastructure imposes specific constraints that standard urban we
 
 ```
                             ┌─────────────────────────────────┐
-                            │    National Agriculture APIs    │
-                            │   (Agmarknet / e-NAM / IMD)     │
+                            │      Official Govt Portals      │
+                            │   (National Scholarship Portal, │
+                            │     State Scholarship Portals)  │
                             └────────────────┬────────────────┘
-                                             │ Mandi & Weather Data
+                                             │ User-Controlled Hand-off
                                              ▼
 ┌──────────────────┐               ┌──────────────────┐               ┌──────────────────┐
-│  Rural Citizen   │ ◄───────────► │    GramSathi     │ ◄───────────► │ Gram Panchayat   │
-│ (Farmer / Youth) │  Web App/PWA  │  Cloud Platform  │  Officer Web  │ Staff & Sarpanch │
+│  Rural Citizen   │ ◄───────────► │   GramSathi AI   │ ◄───────────► │  Village Kiosk / │
+│ (Student/Farmer) │  Voice & Text │  Cloud Platform  │  Review UI    │ CSC Operator /   │
+│  (Mobile App)    │  (Hindi/Indic)│ (FastAPI Core)   │               │ Panchayat Sachiv │
 └──────────────────┘               └─────────┬────────┘               └──────────────────┘
                                              │
                                              ├────────────────────────────────┐
                                              ▼                                ▼
                             ┌─────────────────────────────────┐ ┌─────────────────────────────────┐
-                            │   Govt Scheme Repositories      │ │        AI / LLM Services        │
-                            │   (MyScheme / DBT Bharat APIs)  │ │   (Google Gemini Multimodal)    │
+                            │    Private Document Storage     │ │     Speech & OCR Adapters       │
+                            │   (Encrypted Object Storage)    │ │   (Tesseract / EasyOCR / STT)   │
                             └─────────────────────────────────┘ └─────────────────────────────────┘
 ```
 
@@ -50,219 +50,241 @@ Rural digital infrastructure imposes specific constraints that standard urban we
 ### 2.2 Container Diagram (Level 2)
 
 ```
-                                      [ HTTPS / WSS ]
-                                             │
-                                             ▼
-                                  ┌─────────────────────┐
-                                  │   Cloudflare CDN    │
-                                  │   & Edge Caching    │
-                                  └──────────┬──────────┘
-                                             │
-                                             ▼
-                                  ┌─────────────────────┐
-                                  │ NGINX / Cloud Gate  │
-                                  │ Reverse Proxy & SSL │
-                                  └──────────┬──────────┘
-                                             │
-                    ┌────────────────────────┴────────────────────────┐
-                    ▼                                                 ▼
-        ┌───────────────────────┐                         ┌───────────────────────┐
-        │  Next.js 14 Frontend  │                         │ Fastify Core Backend  │
-        │  PWA (Client App)     │                         │  API Gateway & REST   │
-        │  - App Router (SSR)   │                         │  - Rate Limiting      │
-        │  - Service Worker     │                         │  - Zod Validation     │
-        │  - Dexie.js (Offline) │                         │  - Auth & RBAC        │
-        └───────────────────────┘                         └───────────┬───────────┘
-                                                                      │
-        ┌─────────────────────────────────────────────────────────────┼──────────────────────────────┐
-        ▼                                                             ▼                              ▼
-┌───────────────┐                                             ┌───────────────┐              ┌───────────────┐
-│  PostgreSQL   │                                             │  Redis Cache  │              │ BullMQ Worker │
-│ 16 + PostGIS  │                                             │   & Pub/Sub   │              │ Async Queue   │
-│ - Users       │                                             │ - Mandi TTL   │              │ - SMS / OTP   │
-│ - Schemes     │                                             │ - Auth Token  │              │ - Auto-SLA    │
-│ - Grievances  │                                             │ - Geohash idx │              │ - OCR & Image │
-└───────────────┘                                             └───────────────┘              └───────┬───────┘
-                                                                                                     │
-                                                               ┌─────────────────────────────────────┴───────┐
-                                                               ▼                                             ▼
-                                                       ┌───────────────┐                             ┌───────────────┐
-                                                       │ Google Gemini │                             │ Cloud Storage │
-                                                       │ 1.5 Flash API │                             │  (S3 / MinIO) │
-                                                       └───────────────┘                             └───────────────┘
+                                  [ Flutter Mobile Application ]
+                           (Hindi Voice, Text, Camera Upload, Review UI)
+                                                 │
+                                                 │ HTTPS / REST API
+                                                 ▼
+                             ┌───────────────────────────────────────┐
+                             │        FastAPI Gateway & Core         │
+                             │  - Sessions & Consent Management      │
+                             │  - Workflow State Orchestrator        │
+                             │  - Request Validation & Auth          │
+                             └───────────────────┬───────────────────┘
+                                                 │
+         ┌───────────────────────────────────────┼───────────────────────────────────────┐
+         ▼                                       ▼                                       ▼
+┌─────────────────────────┐             ┌─────────────────────────┐             ┌─────────────────────────┐
+│ Input Processing Layer  │             │ Core Innovation Layer   │             │ Application Intel Layer │
+│                         │             │ (Evidence Intelligence) │             │                         │
+│ - Speech STT Adapter    │ ──────────► │ 1. Provenance Manager   │ ──────────► │ - Scheme Config Rules   │
+│ - Transcript Corrector  │             │ 2. Field Matcher        │             │ - Dependency Graph(DAG) │
+│ - Document Sanitizer    │             │ 3. Conflict Detector    │             │ - Draft Controller      │
+│ - OCR Engine Adapters   │             │ 4. User Override Manager│             │ - Portal Handoff Prep   │
+└─────────────────────────┘             └─────────────────────────┘             └─────────────────────────┘
+         │                                       │                                       │
+         └───────────────────────────────────────┼───────────────────────────────────────┘
+                                                 │
+                                                 ▼
+                             ┌───────────────────────────────────────┐
+                             │         Shared Infrastructure         │
+                             │ - PostgreSQL Relational DB            │
+                             │ - Private Encrypted Document Storage  │
+                             │ - Immutable Audit Trail & Logs        │
+                             │ - Rule Engine Versioning Store        │
+                             └───────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Data Architecture & Entity Relationship Model
+## 3. The Evidence Intelligence Engine (Deep Technical Design)
 
-The schema uses PostgreSQL 16 with the **PostGIS** extension for geographic spatial bounds and distance calculations.
+### 3.1 Field Decoupling: Fields vs. Evidence
+Traditional database schemas store fields as scalar strings (e.g., `full_name: "Yash Sharma"`). When a second document is uploaded, the existing value is either overwritten or silently dropped.
+
+In GramSathi AI, **`ExtractedFields` and `FieldEvidence` are decoupled**:
+- An **`ExtractedField`** represents the canonical application attribute required by the target government scheme.
+- A **`FieldEvidence`** record represents an immutable, atomic observation extracted from a specific document.
+
+```
+Application Field: [ full_name ]
+  ├── Evidence #1: { Doc: "Aadhaar.pdf", Page: 1, Value: "Yash Sharma", Region: [x,y,w,h], Conf: 0.98 }
+  ├── Evidence #2: { Doc: "Marksheet.jpg", Page: 1, Value: "Yash S Sharma", Region: [x,y,w,h], Conf: 0.92 }
+  └── Evidence #3: { Doc: "Income_Cert.pdf", Page: 1, Value: "Yash Sharma", Region: [x,y,w,h], Conf: 0.89 }
+```
+
+### 3.2 Conflict Classification Taxonomy
+The Cross-Document Reconciliation Engine classifies multi-source evidence comparisons into five deterministic severity categories:
+
+1. **EXACT_MATCH**: Normalized string equality across all evidence sources (`normalize(A) == normalize(B)`).
+2. **FORMAT_VARIATION**: Harmless differences in punctuation, whitespace, or date formatting (e.g., `12-04-2005` vs `12/04/2005`).
+3. **SPELLING_OR_TRANSLITERATION_VARIATION**: Levenshtein edit distance $\le 2$ or common Indic phonetic transliteration variations (e.g., `Yash Sharma` vs `Yash S Sharma` or `Vikas` vs `Bikash`). Requires human review confirmation.
+4. **MATERIAL_CONTRADICTION**: Distinct semantic values (e.g., differing Dates of Birth, conflicting annual income figures: `₹1,20,000` vs `₹2,40,000`). Triggers mandatory hard block on draft generation.
+5. **UNREADABLE_OR_MISSING**: OCR confidence below minimum threshold ($\mathcal{C}_{ocr} < \tau_{min}$) or target field absent from document.
+
+---
+
+## 4. Field Reliability State Machine
+
+Every application field progresses through a strict, deterministic state machine before it is accepted into an official draft:
+
+```mermaid
+stateDiagram-v2
+    [*] --> EXTRACTED: OCR Pipeline extracts candidate
+    
+    EXTRACTED --> EVIDENCE_CHECK: Provenance & Region Recorded
+    
+    EVIDENCE_CHECK --> READY_FOR_REVIEW: Single source valid OR Multi-source Exact Match
+    EVIDENCE_CHECK --> NEEDS_REVIEW: Low OCR confidence OR Transliteration variation
+    EVIDENCE_CHECK --> CONFLICTED: Material contradiction across documents
+    
+    NEEDS_REVIEW --> USER_CONFIRMED: User verifies highlighted source
+    NEEDS_REVIEW --> USER_CORRECTED: User edits value with audit trail
+    
+    CONFLICTED --> USER_CONFIRMED: User selects authoritative source
+    CONFLICTED --> USER_CORRECTED: User provides correct statutory value
+    
+    READY_FOR_REVIEW --> USER_CONFIRMED: User reviews and approves
+    
+    USER_CONFIRMED --> ELIGIBLE_FOR_DRAFT: Passed Scheme Dependency Validation
+    USER_CORRECTED --> ELIGIBLE_FOR_DRAFT: Passed Scheme Dependency Validation
+    
+    ELIGIBLE_FOR_DRAFT --> DRAFT_GENERATED: Draft Controller incorporates field
+```
+
+### Multi-Dimensional Confidence Matrix
+GramSathi AI **never collapses confidence into a single raw OCR number**. Confidence is evaluated across four distinct dimensions:
+
+$$\text{Field Readiness} = f\big(\mathcal{C}_{ocr}, \mathcal{C}_{consist}, \mathcal{C}_{audit}, \mathcal{C}_{rules}\big)$$
+
+1. **$\mathcal{C}_{ocr}$ (Glyphic Quality)**: Character/word-level confidence emitted by the OCR engine.
+2. **$\mathcal{C}_{consist}$ (Evidence Consistency)**: Degree of agreement across independent supporting documents.
+3. **$\mathcal{C}_{audit}$ (Human Audit Status)**: Explicit verification status by the applicant or kiosk operator.
+4. **$\mathcal{C}_{rules}$ (Scheme Compliance)**: Deterministic satisfaction of scheme-specific eligibility boundaries.
+
+---
+
+## 5. Dependency-Aware Validation Graph (DAG)
+
+Scheme validation is modeled as a Directed Acyclic Graph (DAG). When an applicant or evidence engine updates a field, the system does not revalidate the entire world; it selectively marks dependent nodes as dirty:
+
+```
+[ Annual Income Updated ]
+           │
+           ▼
+[ Mark Income Checks Dirty ]
+           │
+           ├──────────────────────────────┐
+           ▼                              ▼
+[ Revalidate Income Ceiling ]    [ Revalidate Fee Waiver Eligibility ]
+           │                              │
+           └──────────────┬───────────────┘
+                          ▼
+            [ Update Draft Readiness Score ]
+```
+
+---
+
+## 6. Entity Relationship Model (Core Data Architecture)
 
 ```mermaid
 erDiagram
-    GRAM_PANCHAYAT ||--o{ USER : contains
-    GRAM_PANCHAYAT ||--o{ GRIEVANCE : governs
-    USER ||--o{ CITIZEN_PROFILE : has
-    USER ||--o{ GRIEVANCE : lodges
-    GRIEVANCE ||--o{ GRIEVANCE_TIMELINE : tracks
-    GRIEVANCE ||--o{ GRIEVANCE_ATTACHMENT : includes
-    CITIZEN_PROFILE ||--o{ SCHEME_APPLICATION : applies
-    SCHEME ||--o{ SCHEME_CRITERIA : defines
-    SCHEME ||--o{ SCHEME_APPLICATION : receives
-    MANDI ||--o{ MANDI_PRICE : records
+    SESSION ||--o{ APPLICATION_DRAFT : creates
+    SERVICE ||--o{ RULE_VERSION : specifies
+    SERVICE ||--o{ APPLICATION_DRAFT : instantiates
+    APPLICATION_DRAFT ||--o{ DOCUMENT : contains
+    APPLICATION_DRAFT ||--o{ EXTRACTED_FIELD : contains
+    DOCUMENT ||--o{ FIELD_EVIDENCE : provides
+    EXTRACTED_FIELD ||--o{ FIELD_EVIDENCE : references
+    EXTRACTED_FIELD ||--o{ FIELD_CONFLICT : flags
+    EXTRACTED_FIELD ||--o{ FIELD_CONFIRMATION : tracks
+    APPLICATION_DRAFT ||--o{ VALIDATION_ISSUE : evaluates
+    APPLICATION_DRAFT ||--o{ AUDIT_EVENT : records
 
-    GRAM_PANCHAYAT {
+    APPLICATION_DRAFT {
         uuid id PK
-        string code UK "LGD Local Gov Code"
-        string name "e.g. Rampur"
-        string block "Block / Tehsil"
-        string district
-        string state
-        geometry boundary "Polygon geometry"
+        uuid session_id FK
+        uuid service_id FK
+        string rule_version
+        enum status "DRAFT_INIT, IN_PROGRESS, REVIEW_PENDING, READY, EXPORTED"
+        timestamp created_at
+        timestamp updated_at
     }
 
-    USER {
+    DOCUMENT {
         uuid id PK
-        string phone_number UK
-        string full_name
-        enum role "CITIZEN, PANCHAYAT_OFFICER, DISTRICT_ADMIN"
-        uuid panchayat_id FK
-        boolean is_verified
+        uuid draft_id FK
+        string document_type "AADHAAR, MARKSHEET, INCOME_CERTIFICATE, CASTE_CERTIFICATE"
+        string file_name
+        string mime_type
+        string storage_path "Encrypted private storage reference"
+        string sha256_checksum
+        integer page_count
+        timestamp uploaded_at
+    }
+
+    EXTRACTED_FIELD {
+        uuid id PK
+        uuid draft_id FK
+        string field_key "full_name, dob, annual_income, percentage"
+        string candidate_value
+        enum reliability_status "EXTRACTED, NEEDS_REVIEW, CONFLICTED, USER_CONFIRMED, USER_CORRECTED, ELIGIBLE"
+        boolean requires_user_review
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    FIELD_EVIDENCE {
+        uuid id PK
+        uuid field_id FK
+        uuid document_id FK
+        integer page_number
+        json bounding_box "{x, y, width, height}"
+        string raw_text
+        string normalized_value
+        string ocr_engine "TESSERACT_5, EASYOCR_1"
+        float ocr_confidence
+        timestamp extracted_at
+    }
+
+    FIELD_CONFLICT {
+        uuid id PK
+        uuid field_id FK
+        enum conflict_type "EXACT_MATCH, FORMAT_DIFF, SPELLING_VAR, MATERIAL_CONTRADICTION"
+        json conflicting_evidence_ids
+        string explanation_hi
+        string explanation_en
+        boolean is_resolved
         timestamp created_at
     }
 
-    CITIZEN_PROFILE {
+    FIELD_CONFIRMATION {
         uuid id PK
-        uuid user_id FK
-        enum gender "MALE, FEMALE, OTHER"
-        date date_of_birth
-        string caste_category "GEN, OBC, SC, ST"
-        decimal annual_income
-        decimal land_holding_acres
-        boolean has_irrigation
-        boolean is_bpl
-        string occupation "FARMER, ARTISAN, LABOR, YOUTH"
+        uuid field_id FK
+        string previous_value
+        string confirmed_value
+        enum action "CONFIRMED, OVERRIDDEN, REJECTED"
+        string confirmed_by "APPLICANT, OPERATOR"
+        timestamp confirmed_at
     }
 
-    GRIEVANCE {
+    VALIDATION_ISSUE {
         uuid id PK
-        string ticket_id UK "GS-2026-XXXXX"
-        uuid citizen_id FK
-        uuid panchayat_id FK
-        enum category "WATER, ELECTRICITY, ROADS, SANITATION, HEALTH, OTHER"
-        string description
-        geometry location "Point(longitude, latitude)"
-        string address_landmark
-        enum status "SUBMITTED, ACKNOWLEDGED, IN_PROGRESS, RESOLVED, ESCALATED, REJECTED"
-        enum priority "LOW, MEDIUM, HIGH, EMERGENCY"
-        timestamp sla_due_date
+        uuid draft_id FK
+        string field_key
+        enum severity "INFO, WARNING, BLOCKING_ERROR"
+        string rule_code
+        string message_hi
+        string message_en
+        boolean is_resolved
+    }
+
+    AUDIT_EVENT {
+        uuid id PK
+        uuid draft_id FK
+        string event_type "DOC_UPLOAD, OCR_COMPLETE, CONFLICT_DETECTED, FIELD_OVERRIDE, DRAFT_GEN"
+        json payload
         timestamp created_at
-    }
-
-    GRIEVANCE_TIMELINE {
-        uuid id PK
-        uuid grievance_id FK
-        uuid actor_id FK
-        string action "STATUS_CHANGED, COMMENT_ADDED, ESCALATED"
-        string notes
-        timestamp created_at
-    }
-
-    SCHEME {
-        uuid id PK
-        string slug UK
-        string title_en
-        string title_hi
-        text description
-        string department
-        string funding_type "CENTRAL, STATE"
-        string direct_benefit_amount
-        string apply_url
-    }
-
-    MANDI_PRICE {
-        uuid id PK
-        string mandi_name
-        string district
-        string state
-        string commodity "Wheat, Soybean, Cotton, Onion"
-        decimal min_price
-        decimal max_price
-        decimal modal_price
-        date report_date
     }
 ```
 
 ---
 
-## 4. Offline-First Synchronization Protocol
+## 7. Security, Privacy & DPDP Compliance
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Citizen Client (PWA)                            │
-│                                                                        │
-│  [User submits Grievance / Updates Profile]                            │
-│                    │                                                   │
-│                    ▼                                                   │
-│          Is Browser Online? ───► YES ───► Standard Fastify API Call    │
-│                    │                                                   │
-│                   NO                                                   │
-│                    │                                                   │
-│                    ▼                                                   │
-│       Save to Dexie (IndexedDB)                                        │
-│       - table: `outbox_mutations`                                      │
-│       - state: 'QUEUED'                                                │
-│       - optimistic UI displays "Saved Locally"                         │
-│                    │                                                   │
-│                    ▼                                                   │
-│       Background Service Worker registers 'sync' tag                   │
-│                    │                                                   │
-│       Network Restored Event                                           │
-│                    │                                                   │
-│                    ▼                                                   │
-│       Process `outbox_mutations` FIFO                                  │
-│       - POST /api/v1/sync/batch                                        │
-│       - Resolves idempotency token (UUIDv4 generated at creation)      │
-│       - Updates status to 'SYNCED' with server-allocated Ticket ID     │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
-### Conflict Resolution Strategy
-1. **Grievance Creation**: Always append-only; UUID generated on client guarantees zero collision upon late ingestion.
-2. **Citizen Profile Edits**: **Last-Write-Wins (LWW)** backed by an integer `version` increment column. If client version `<` server version, server returns HTTP 409 Conflict with the current canonical profile for client reconciliation.
-
----
-
-## 5. AI Multimodal & Multilingual Pipeline
-
-### 5.1 Multimodal Grievance Assessment
-When a citizen snaps a photo of a civic issue (e.g., broken handpump, waterlogging):
-1. **Client-side Compression**: Canvas downsamples the image to max 1280px width, WebP format (<250 KB).
-2. **Gemini Vision Processing**:
-   - Classifies category (`WATER_SUPPLY`, `ROAD_DAMAGE`, `ELECTRICAL_HAZARD`).
-   - Assesses severity score (`1 - Cosmetic` to `5 - Emergency Hazard`).
-   - Auto-extracts tags to reduce typing for the citizen.
-
-### 5.2 Conversational Scheme Assistant
-- Integrated via **Google Gemini 1.5 Flash**.
-- Natural language query: *"Mere paas 2 acre zameen hai aur main chhota kisan hoon, mujhe konsi yojana mil sakti hai?"*
-- System prompt injects:
-  - Structured catalog of active central/state schemes.
-  - Citizen's demographic context (if consented).
-- Response generated in natural, conversational rural Hindi/Indic language with step-by-step guidance.
-
----
-
-## 6. Security, RBAC & Governance Matrix
-
-| Role | Permissions & Boundaries |
-| :--- | :--- |
-| **Citizen (`CITIZEN`)** | Can view public schemes, mandi rates; can create/view their own grievances & applications. Strict row-level isolation (`WHERE citizen_id = auth.uid()`). |
-| **Gram Panchayat Officer (`PANCHAYAT_OFFICER`)** | Can view and update grievances whose `panchayat_id` matches their assigned village; cannot alter citizen personal identity records. |
-| **Block Dev Officer (`BLOCK_ADMIN`)** | Can view aggregated analytics across all Panchayats in their block; receives automated escalation alerts for breached SLAs. |
-| **Super Admin (`SYSTEM_ADMIN`)** | Manages scheme master records, mandi data synchronization, and system configuration. |
-
-### DPDP Act & Data Privacy Rules:
-- **Aadhaar Protection**: GramSathi *never* stores raw 12-digit Aadhaar numbers. If identity verification is enabled, only masked VID (Virtual ID) or SHA-256 salted hashes are processed.
-- **Data Minimization**: Location access is requested strictly when capturing a grievance or locating the nearest Mandi.
-- **Audit Logs**: All state transitions (`GRIEVANCE_TIMELINE`) maintain immutable creator ID, timestamp, and client IP hash.
+1. **Private Non-Public Storage**: Uploaded identity certificates and marksheets are stored strictly outside public web roots with private cryptographic references. Pre-signed access tokens expire within 15 minutes.
+2. **DPDP Act (India) Compliance**:
+   - Zero storage of unmasked 12-digit Aadhaar numbers (only last 4 digits displayed or masked VID used).
+   - Explicit digital consent logging recorded at session creation (`consent_timestamp`, `purpose_id`).
+   - Hard cryptographic purge (`DELETE /v1/drafts/{id}/documents/{doc_id}`) permanently removes file artifacts and unlinks derived evidence nodes upon applicant request.
+3. **Audit Immutability**: All field overrides retain historical values (`previous_value`, `confirmed_value`, `actor_timestamp`) to ensure statutory auditability and prevent fraudulent tampering.

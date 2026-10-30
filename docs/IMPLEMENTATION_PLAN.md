@@ -1,126 +1,140 @@
-# 📅 GramSathi Phase-by-Phase Implementation Plan
+# 📅 GramSathi AI — 10-Week Execution Plan & Milestone Roadmap
 
-**Engineering Roadmap:** 14 Weeks (5 Distinct Execution Phases)  
-**Methodology:** Agile / Sprint-based (2-week cadence) with early rural user validation gates.
+**Project:** GramSathi AI  
+**Core Methodology:** Evidence-Linked, Confidence-Gated Application Generation  
+**Target Milestone:** Production-grade pilot of 1 Scholarship Workflow with Hindi Voice & OCR Evidence Reconciliation  
 
 ---
 
-## 🗺️ High-Level Milestone Roadmap
+## 🗺️ High-Level 10-Week Milestone Summary
 
 ```
-Week  1 - 3   [Phase 1] ───► Monorepo, Core Auth, Database & Base Citizen PWA
-Week  4 - 6   [Phase 2] ───► AI Scheme Recommendation Engine & Multilingual Content
-Week  7 - 9   [Phase 3] ───► Civic Grievances, Geo-tagging & Panchayat Officer Portal
-Week 10 - 12  [Phase 4] ───► Mandi Price Ingestion, Weather & Offline-First Sync
-Week 13 - 14  [Phase 5] ───► Security Audit, Low-Bandwidth Stress Testing & Production Launch
+Week  1 [Phase 0] ───► Research, Scheme Field Specification & Synthetic Document Dataset
+Week  2 [Phase 1] ───► Basic Application Without AI (Flutter + FastAPI Manual Flow)
+Week  3 [Phase 2] ───► Database & Document Management (PostgreSQL & Private Object Store)
+Week  4 [Phase 3] ───► OCR Pipeline & Structured Field Extraction (Tesseract/EasyOCR Adapters)
+Week  5 [Phase 4] ───► Core Innovation: Evidence Reconciliation & Conflict Detection Engine
+Week  6 [Phase 5] ───► Confidence Management & Controlled Draft Generation State Machine
+Week  7 [Phase 6] ───► Versioned Scheme Rules & Dependency-Aware Validation (DAG)
+Week  8 [Phase 7] ───► Hindi Voice Assistant (STT, Intent Mapping & Guided Interaction)
+Week  9 [Phase 8] ───► Offline Reliability, Security Hardening & DPDP Privacy Compliance
+Week 10 [Phase 9/10] ► System Integration, Comparative Evaluation & Patent Documentation
 ```
 
 ---
 
-## 📋 Detailed Phase Breakdown
+## 📋 Phase-by-Phase Detailed Breakdown
 
-### 🟢 Phase 1: Foundation, Data Modeling & Core Citizen PWA (Weeks 1 - 3)
-
-**Objective:** Set up monorepo infrastructure, establish PostgreSQL + PostGIS schema, implement passwordless mobile OTP authentication, and scaffold the baseline Next.js 14 PWA.
-
-- **Sprint 1 (Weeks 1 - 2): Infrastructure & Database**
-  - [x] Initialize npm / pnpm workspace structure (`apps/web`, `apps/api`, `packages/database`).
-  - [x] Configure Prisma ORM with PostgreSQL + PostGIS geometry models.
-  - [x] Seed master data: 50+ Indian districts, blocks, gram panchayats, and standard government scheme catalogs.
-  - [x] Set up Redis cache & BullMQ queue scaffolding for async jobs.
-
-- **Sprint 2 (Week 3): Mobile Auth & Citizen Profile**
-  - [x] Implement passwordless mobile phone OTP verification flow.
-  - [x] Build Citizen demographic onboarding (caste category, land holding, annual income, occupation).
-  - [x] Configure PWA manifest (`manifest.json`), service worker registration, and app installation prompts.
-  - [x] Implement dual-script i18n localization engine (Hindi & English base dictionaries).
-
-*Deliverable Gate 1:* Citizen can register with phone number, select their village/panchayat, complete demographic profile, and install the PWA on Android.
+### 🟢 Phase 0: Research, Scope & Specification (Week 1)
+- **Goal:** Freeze statutory rules for one target scholarship scheme and construct synthetic test data.
+- **Key Tasks:**
+  - Select target scheme (e.g., Post-Matric State Scholarship).
+  - Define required fields: `full_name`, `date_of_birth`, `annual_income`, `marks_percentage`, `category`, `institution`.
+  - Map each field to its acceptable source documents (Aadhaar, Marksheet, Income Certificate).
+  - Generate a controlled synthetic document dataset with clean, blurred, and deliberately conflicting records.
+- **Deliverable Gate:** Written field specification, JSON validation rules, and synthetic document ground-truth dataset.
 
 ---
 
-### 🟡 Phase 2: AI Scheme Recommendation Engine & Voice Search (Weeks 4 - 6)
-
-**Objective:** Enable citizens to discover and check eligibility for 50+ central & state schemes using profile matching and voice queries.
-
-- **Sprint 3 (Weeks 4 - 5): Rule-Based & Semantic Matching Engine**
-  - [x] Construct JSON-based scheme eligibility rule evaluator:
-    `(income <= threshold && land_holding <= 5.0 && occupation == 'FARMER')`.
-  - [x] Build Scheme Discovery catalog with categorized filtering (Agriculture, Health, Pension, Housing, Education).
-  - [x] Create Scheme Detail view with required documents checklist, application links, and benefit calculator.
-
-- **Sprint 4 (Week 6): Multilingual AI Voice Assistant**
-  - [x] Integrate Google Gemini 1.5 Flash API with custom system prompts for conversational Indic welfare advisory.
-  - [x] Connect browser Web Speech Recognition & SpeechSynthesis APIs with graceful fallback.
-  - [x] Add single-tap audio explanation button `[🔊 सुनिए]` on every scheme card.
-
-*Deliverable Gate 2:* Citizen can press the microphone button, ask about tractor subsidies in Hindi, and receive instant eligible scheme recommendations with voice playback.
+### 🟢 Phase 1: Basic Application Workflow Without AI (Week 2 — P0)
+- **Goal:** Prove end-to-end draft creation, field saving, and validation before touching AI or OCR.
+- **Key Tasks:**
+  - Build Flutter client: Welcome screen, language toggle, scheme selection, manual field entry, review summary.
+  - Build FastAPI backend: `POST /v1/sessions`, `POST /v1/drafts`, `PATCH /v1/drafts/{id}/fields`, `POST /v1/drafts/{id}/validate`, `GET /v1/drafts/{id}/summary`.
+- **Deliverable Gate:** A user can create, save, validate, and inspect an application draft entirely via manual entry.
 
 ---
 
-### 🟠 Phase 3: Civic Grievance Redressal & Panchayat Officer Dashboard (Weeks 7 - 9)
-
-**Objective:** Implement end-to-end civic issue reporting with camera capture, auto-geolocation, SLA tracking, and role-based officer resolution dashboard.
-
-- **Sprint 5 (Weeks 7 - 8): Citizen Grievance Reporting Pipeline**
-  - [x] 3-step zero-typing grievance submission flow (Camera snap ➔ Category chip ➔ Audio note).
-  - [x] Automated HTML5 Geolocation capture with reverse geocoding to Gram Panchayat boundary.
-  - [x] S3/Cloud Storage presigned URL pipeline with client-side WebP image downsampling (<200KB).
-  - [x] Gemini Vision pipeline for automated tag suggestion and damage classification.
-
-- **Sprint 6 (Week 9): Panchayat Officer Workspace & Escalation Matrix**
-  - [x] Role-Based Access Control (RBAC): Gram Panchayat Officer login with village-level isolation.
-  - [x] Officer Kanban/Table view: Acknowledge, assign to field worker, and resolve with "After" photo proof.
-  - [x] Automated 7-day SLA cron worker: Escalates unresolved complaints to Block Development Officer (BDO).
-  - [x] Automated SMS status notification dispatch to citizen upon status change.
-
-*Deliverable Gate 3:* Citizen files a water handpump complaint with photo and GPS; Panchayat Officer receives it instantly, updates status to "In Progress", and citizen gets SMS update.
+### 🟢 Phase 2: Database & Document Management (Week 3 — P0)
+- **Goal:** Establish PostgreSQL data model decoupling fields from evidence.
+- **Key Tasks:**
+  - Implement relational schema: `application_drafts`, `documents`, `extracted_fields`, `field_evidence`, `field_conflicts`, `field_confirmations`, `audit_events`.
+  - Secure private document storage pipeline with cryptographic hash check (`SHA-256`) and size/type validation.
+- **Deliverable Gate:** Backend persists drafts, documents, and multiple evidence records per field.
 
 ---
 
-### 🔵 Phase 4: Mandi Price Tracking & Offline-First Sync (Weeks 10 - 12)
-
-**Objective:** Provide real-time local mandi commodity rates and ensure 100% of the app's critical features function without active internet connectivity.
-
-- **Sprint 7 (Weeks 10 - 11): Mandi Price Ingestion & Weather Advisory**
-  - [x] Automated cron worker syncing daily APMC Mandi rates (Agmarknet / open data feeds).
-  - [x] Mandi price discovery interface with sorting by proximity (using PostGIS distance queries).
-  - [x] Commodity price trends (7-day high/low) with simple red/green direction indicators.
-  - [x] Hyperlocal weather warning card (heavy rainfall, frost alerts) via OpenWeather / IMD API.
-
-- **Sprint 8 (Week 12): Offline-First Persistence & Outbox Sync**
-  - [x] Implement Dexie.js (IndexedDB) client database mirroring user profile, active grievances, and cached mandi rates.
-  - [x] Build `OutboxMutationQueue` intercepting offline POST requests (e.g., lodging grievance while offline in fields).
-  - [x] Implement Background Sync service worker listener to auto-drain the outbox upon network reconnect.
-  - [x] Comprehensive offline status banner and optimistic UI updates.
-
-*Deliverable Gate 4:* User turns on Airplane Mode, files a grievance with photo, turns Airplane Mode off, and observes the grievance syncing automatically with ticket ID generation.
+### 🟢 Phase 3: OCR & Structured Field Extraction (Week 4 — P0)
+- **Goal:** Ingest documents and convert raw images/PDFs into structured candidates.
+- **Key Tasks:**
+  - Implement pluggable OCR adapter (`pytesseract` / `easyocr`).
+  - Preprocessing pipeline: Deskew, binarization, format conversion.
+  - Field identification & normalization routines.
+  - Build OCR review UI in Flutter highlighting extracted values and raw confidence.
+- **Deliverable Gate:** Uploaded synthetic documents produce editable extracted fields with coordinate bounding boxes.
 
 ---
 
-### 🟣 Phase 5: Hardening, Security, Field Validation & Production Launch (Weeks 13 - 14)
-
-**Objective:** Validate performance on low-end hardware under 2G network simulation, perform penetration/security review, and deploy production cluster.
-
-- **Sprint 9 (Week 13): Performance Optimization & Security Audit**
-  - [x] Chrome DevTools network throttling test (simulated 2G/3G slow connection, 200kbps, 400ms latency).
-  - [x] Bundle size audit: Ensure initial JS bundle < 85 KB gzipped.
-  - [x] Security audit: DPDP Act compliance review, SQL injection prevention, rate-limiting on OTP endpoints.
-  - [x] Cross-browser and low-cost Android device testing (Android 9+, Chrome 80+).
-
-- **Sprint 10 (Week 14): Production Deployment & Pilot Go-Live**
-  - [x] Production Docker containerization (`Dockerfile` for web & api).
-  - [x] CI/CD pipeline setup via GitHub Actions (Lint, Typecheck, Unit Tests, Build).
-  - [x] Zero-downtime deployment setup (PostgreSQL managed cluster + Redis + CDN edge caching).
-  - [x] Rollout to first 10 pilot Gram Panchayats with training handbook for Sarpanch and Panchayat Secretaries.
+### 🟡 Phase 4: Core Innovation — Evidence Reconciliation Engine (Week 5 — Core IP)
+- **Goal:** Build the multi-document provenance and conflict detection engine.
+- **Key Tasks:**
+  - **Field Provenance Manager:** Records immutable source metadata for every extracted value.
+  - **Field Matcher:** Maps document attributes to canonical application fields across multiple documents.
+  - **Conflict Detector:** Implements deterministic comparison classifying exact matches, format variations, spelling/transliteration differences, and material contradictions.
+  - **Conflict Resolution Store:** Preserves conflicting evidence alongside user overrides.
+- **Deliverable Gate:** Deliberately uploading conflicting synthetic documents causes the system to detect the conflict and present both sources to the user.
 
 ---
 
-## ⚠️ Risk Assessment & Mitigation Strategies
+### 🟡 Phase 5: Confidence Management & Controlled Draft Generation (Week 6 — Core IP)
+- **Goal:** Implement the formal field reliability state machine.
+- **Key Tasks:**
+  - State machine transitions: `EXTRACTED` $\rightarrow$ `EVIDENCE_CHECK` $\rightarrow$ `READY / NEEDS_REVIEW / CONFLICTED` $\rightarrow$ `USER_CONFIRMED / USER_CORRECTED` $\rightarrow$ `ELIGIBLE_FOR_DRAFT`.
+  - Multi-dimensional confidence matrix: Separating $\mathcal{C}_{ocr}$, $\mathcal{C}_{consist}$, $\mathcal{C}_{audit}$, $\mathcal{C}_{rules}$.
+  - **Draft Generation Controller:** Hard gating ensuring no conflicting or unconfirmed field silently enters the final draft.
+- **Deliverable Gate:** Draft generation fails safely if any blocking field remains unverified or conflicted.
 
-| Risk Factor | Probability | Impact | Mitigation Strategy |
-| :--- | :--- | :--- | :--- |
-| **Citizens hesitant to type in English/Hindi** | High | Critical | Provide voice-first recording for grievances and voice search for schemes. Minimal required typing. |
-| **Panchayat officers failing to act on grievances** | Medium | High | Automated SLA countdown with auto-escalation to higher Block/District administrative tiers with weekly email/SMS digests. |
-| **Low phone storage on budget smartphones** | High | Medium | PWA footprint < 5 MB without requiring app store installation; automatic image compression before upload. |
-| **Outdated Mandi prices due to API downtime** | Medium | Medium | Fallback to cached historical modal prices with clear "Last updated X hours ago" badge. |
+---
+
+### 🟠 Phase 6: Scheme Rules & Dependency-Aware Validation (Week 7 — P0)
+- **Goal:** Implement statutory rule evaluation using a Directed Acyclic Graph (DAG).
+- **Key Tasks:**
+  - Versioned JSON scheme configuration schemas.
+  - Rule evaluators for mandatory fields, formats, numeric ranges, and income ceilings.
+  - Dependency manager: Marking dependent checks dirty upon field mutation (e.g., income change triggers revalidation of fee waiver).
+- **Deliverable Gate:** Modifying a field re-evaluates only downstream statutory rules and updates overall draft readiness.
+
+---
+
+### 🟠 Phase 7: Hindi Voice Assistant & Guided Interaction (Week 8 — P1)
+- **Goal:** Enable hands-free voice interaction for low-literacy rural users.
+- **Key Tasks:**
+  - Hindi Speech-to-Text integration with editable transcript view.
+  - Intent recognition mapping spoken phrases to scheme workflow and document upload requests.
+  - Spoken Hindi guidance (`[🔊 सुनिए]`) explaining identified conflicts or required documents.
+- **Deliverable Gate:** Citizen can initiate scholarship preparation and receive spoken guidance entirely in Hindi.
+
+---
+
+### 🔵 Phase 8: Offline Reliability, Security & DPDP Compliance (Week 9 — P1)
+- **Goal:** Harden the system for real-world rural network conditions and data protection.
+- **Key Tasks:**
+  - Weak-network recovery: Chunked upload, local draft checkpoints, idempotent operation tokens.
+  - DPDP compliance: Masked Aadhaar handling, explicit consent capture, hard deletion routines.
+  - Audit log immutability and fraud warning banners.
+- **Deliverable Gate:** Interrupted uploads recover cleanly after network reconnection without data loss or duplicate processing.
+
+---
+
+### 🔵 Phase 9 & 10: Complete Integration, Comparative Evaluation & Patent Prep (Week 10)
+- **Goal:** End-to-end validation, comparative benchmarking, and patent documentation.
+- **Key Tasks:**
+  - Benchmark proposed GramSathi system against Baseline (OCR + naive form fill).
+  - Measure False Acceptance Rate (FAR), Conflict Detection Precision/Recall, and Draft Completion Rate.
+  - Prepare technical novelty disclosures for patentability assessment.
+- **Deliverable Gate:** Working demonstration of Test Scenarios A, B, C, D with quantitative evaluation results.
+
+---
+
+## ⚡ First 48-Hour Execution Milestones
+
+### Day 1: Design & Scope Freeze
+1. Finalize target scholarship scheme and official statutory requirements.
+2. Freeze field-to-evidence matrix and database entity specifications.
+3. Generate synthetic document test set (clean, blurred, and conflicting).
+
+### Day 2: Basic Working Skeleton
+1. Initialize repository directories (`backend/` and `mobile/`).
+2. Scaffold FastAPI backend with PostgreSQL models.
+3. Scaffold Flutter manual entry screens.
+4. Verify end-to-end draft saving and validation without AI.
