@@ -62,6 +62,28 @@ class ApiClient {
     throw Exception('Failed to validate draft: ${response.body}');
   }
 
+  Future<Map<String, dynamic>> extractDocument(String docId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl${ApiConstants.documentExtract(docId)}'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to extract document: ${response.body}');
+  }
+
+  Future<Map<String, dynamic>> getDraftEvidence(String draftId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl${ApiConstants.draftFields(draftId)}'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to fetch evidence: ${response.body}');
+  }
+
   Future<Map<String, dynamic>> getDraftSummary(String draftId) async {
     final response = await http.get(
       Uri.parse('$baseUrl${ApiConstants.draftSummary(draftId)}'),

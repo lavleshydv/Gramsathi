@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../application_draft/manual_entry_screen.dart';
+import '../document_upload/document_upload_screen.dart';
 
 class SchemeSelectionScreen extends StatelessWidget {
   final String sessionId;
@@ -80,6 +81,25 @@ class SchemeSelectionScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
+                            builder: (context) => DocumentUploadScreen(
+                              draftId: draftId,
+                              sessionId: sessionId,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('दस्तावेज़ अपलोड व ओसीआर (Upload Docs & Run OCR) →'),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
                             builder: (context) => ManualEntryScreen(
                               draftId: draftId,
                               sessionId: sessionId,
@@ -87,7 +107,7 @@ class SchemeSelectionScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text('आवेदन प्रारंभ करें (Fill Application) →'),
+                      child: const Text('मैनुअल प्रविष्टि द्वारा भरें (Manual Entry)'),
                     ),
                   ],
                 ),

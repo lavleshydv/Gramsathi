@@ -1,50 +1,51 @@
-"""OCR Service Adapter: Pluggable interface for document extraction (Tesseract, EasyOCR, or synthetic fixtures)."""
+"""OCR Pipeline Service Orchestrator: Combines Image Preprocessing and Pluggable Adapters."""
 import os
-import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
+from app.services.image_preprocessor import image_preprocessor
+from app.services.ocr_adapters import (
+    BaseOCRAdapter,
+    SyntheticFixtureOCRAdapter,
+    TesseractOCRAdapter,
+    EasyOCRAdapter,
+)
 
 
-class OCRServiceAdapter:
-    """Extracts candidate fields and coordinates from uploaded documents."""
+class OCRService:
+    """Pluggable OCR service coordinating quality check, deskewing, and token extraction."""
 
-    def __init__(self):
-        self.fixtures_dir = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "..", "..", "demo-fixtures", "synthetic-documents")
-        )
+    def __init__(self, primary_adapter: Optional[BaseOCRAdapter] = None):
+        self.adapter: BaseOCRAdapter = primary_adapter or SyntheticFixtureOCRAdapter()
 
-    def extract_document(self, file_name: str, doc_type: str) -> Dict[str, Any]:
-        """Looks up synthetic ground-truth if available or parses text."""
-        # Check in synthetic test cases for matching fixture
-        if os.path.exists(self.fixtures_dir):
-            for fname in os.listdir(self.fixtures_dir):
-                if fname.endswith(".json") and fname != "field_evidence_matrix.json":
-                    path = os.path.join(self.fixtures_dir, fname)
-                    with open(path, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        for doc in data.get("documents", []):
-                            if doc.get("file_name") == file_name or doc.get("document_type") == doc_type:
-                                return doc.get("extracted_data", {})
+    def set_adapter(self, adapter: BaseOCRAdapter):
+        self.adapter = adapter
 
-        # Default fallback extraction structure
-        if doc_type == "AADHAAR":
-            return {
-                "name": {"raw_text": "Yash Sharma", "confidence": 0.98, "box": [120, 210, 240, 35]},
-                "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [120, 260, 180, 32]},
-            }
-        elif doc_type == "MARKSHEET":
-            return {
-                "student_name": {"raw_text": "Yash Sharma", "confidence": 0.97, "box": [140, 180, 230, 30]},
-                "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [140, 220, 175, 30]},
-                "percentage": {"raw_text": "78.4", "confidence": 0.96, "box": [350, 420, 90, 30]},
-                "institution": {"raw_text": "Government Polytechnic Moradabad", "confidence": 0.95, "box": [140, 120, 360, 35]},
-            }
-        elif doc_type == "INCOME_CERTIFICATE":
-            return {
-                "applicant_name": {"raw_text": "Yash Sharma", "confidence": 0.96, "box": [150, 160, 225, 32]},
-                "annual_income": {"raw_text": "120000", "confidence": 0.98, "box": [220, 310, 140, 35]},
-            }
-        return {}
+    def extract_document(
+        self,
+        file_bytes: bytes,
+        file_name: str,
+        doc_type: str,
+    ) -> Dict[str, Any]:
+        """Preprocesses document and extracts structured attribute candidates."""
+        # 1. Preprocess (deskew, binarization, blur detection)
+        prep_metadata = image_preprocessor.preprocess_document_bytes(file_bytes, file_name)
+
+        # 2. Extract using active adapter
+        raw_candidates = self.adapter.extract_fields(file_bytes, file_name, doc_type)
+
+        # 3. Penalize confidence if document was detected as significantly blurry
+        if prep_metadata.get("is_blurry", False):
+            for attr, val in raw_candidates.items():
+                val["confidence"] = min(val.get("confidence", 0.95), 0.60)
+                if "?" not in val.get("raw_text", ""):
+                    # Mark uncertainty in text
+                    val["raw_text"] = val.get("raw_text", "") + " [BLURRY]"
+
+        return {
+            "engine": self.adapter.get_engine_name(),
+            "preprocessing": prep_metadata,
+            "extracted_fields": raw_candidates,
+        }
 
 
-ocr_service = OCRServiceAdapter()
-
+# Global singleton OCR service
+ocr_service = OCRService()
