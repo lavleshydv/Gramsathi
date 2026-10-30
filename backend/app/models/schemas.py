@@ -94,6 +94,16 @@ class EvidenceItem(BaseModel):
     raw_text: str
 
 
+class MultiDimensionalConfidenceScore(BaseModel):
+    c_ocr: float = Field(..., description="OCR extraction confidence (0.0-1.0)")
+    c_consist: float = Field(..., description="Cross-document agreement score (0.0-1.0)")
+    c_audit: float = Field(..., description="Applicant verification audit status (0.0-1.0)")
+    c_rules: float = Field(..., description="Statutory rule compliance score (0.0-1.0)")
+    composite_score: float = Field(..., description="Calibrated reliability score (0.0-1.0)")
+    is_draft_eligible: bool = Field(..., description="Whether this field satisfies draft entry criteria")
+    explanation: str = Field(..., description="Human-readable transparency explanation")
+
+
 class ExtractedFieldSummary(BaseModel):
     field_id: str
     field_key: str
@@ -104,6 +114,7 @@ class ExtractedFieldSummary(BaseModel):
     requires_user_confirmation: bool = False
     ocr_confidence: Optional[float] = None
     consistency_score: Optional[float] = None
+    confidence_tensor: Optional[MultiDimensionalConfidenceScore] = None
     evidences: List[EvidenceItem] = []
 
 
@@ -139,4 +150,17 @@ class DraftSummaryResponse(BaseModel):
     conflicts: List[ConflictItem]
     validation_issues: List[ValidationIssueItem]
     audit_trail_count: int
+
+
+class FinalDraftPackageResponse(BaseModel):
+    draft_id: str
+    service_id: str
+    service_name_hi: str
+    rule_version: str
+    generated_at: datetime
+    is_ready_for_portal: bool
+    blocking_errors: List[str] = []
+    application_payload: Dict[str, Any]
+    evidence_manifest: Dict[str, List[Dict[str, Any]]]
+    audit_event_count: int
 

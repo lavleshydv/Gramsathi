@@ -3,7 +3,7 @@
 **Project:** GramSathi AI (ग्राम साथी)  
 **Core Technical Innovation:** Evidence-Linked, Confidence-Gated Application Generation  
 **Status Snapshot:** 30 October 2026  
-**Progress:** 4/10 Phases Completed (Phase 0, Phase 1, Phase 2, Phase 3 Complete)  
+**Progress:** 6/10 Phases Completed (Phase 0, 1, 2, 3, 4, and 5 Complete)  
 
 ---
 
@@ -15,9 +15,9 @@
 | **Week 2** | **Phase 1: Basic Workflow Without AI** | Working manual Flutter + FastAPI draft creation, validation & summary | 🟢 **COMPLETED** |
 | **Week 3** | **Phase 2: Database & Document Store** | Decoupled evidence schema & private encrypted storage (1:N field-to-evidence) | 🟢 **COMPLETED** |
 | **Week 4** | **Phase 3: OCR Extraction Pipeline** | Documents produce candidate fields with coordinate bounding boxes & OCR confidence | 🟢 **COMPLETED** |
-| **Week 5** | **Phase 4: Evidence Reconciliation Engine** | Multi-source conflict detection & provenance tracking working (Core IP) | ⏳ **UP NEXT** |
-| **Week 6** | **Phase 5: Confidence-Gated Draft Generator** | Formal state machine prevents unconfirmed/conflicted fields from entering draft | ⏸️ Pending |
-| **Week 7** | **Phase 6: Scheme Rules & Dependency DAG** | Versioned scheme config & dependency-aware revalidation | ⏸️ Pending |
+| **Week 5** | **Phase 4: Evidence Reconciliation Engine** | Multi-source conflict detection & provenance tracking working (Core IP) | 🟢 **COMPLETED** |
+| **Week 6** | **Phase 5: Confidence-Gated Draft Generator** | Formal state machine prevents unconfirmed/conflicted fields from entering draft (Core IP) | 🟢 **COMPLETED** |
+| **Week 7** | **Phase 6: Scheme Rules & Dependency DAG** | Versioned scheme config & dependency-aware revalidation | ⏳ **UP NEXT** |
 | **Week 8** | **Phase 7: Hindi Voice Assistant** | Hands-free Hindi STT, transcript review, and spoken guidance | ⏸️ Pending |
 | **Week 9** | **Phase 8: Offline Resilience & DPDP Security** | Resumable uploads, local checkpoints, and masked Aadhaar privacy | ⏸️ Pending |
 | **Week 10**| **Phase 9 & 10: System Integration & Evaluation** | Quantitative comparative benchmarks vs baseline & patent documentation | ⏸️ Pending |
@@ -64,21 +64,26 @@
 - [x] Build Flutter document upload screen (`DocumentUploadScreen`) and OCR review screen (`FieldReviewScreen`) highlighting values, source regions, confidence badges, and in-place confirmation.
 
 ### Week 5 — Phase 4: Evidence Reconciliation & Conflict Detection (Core IP)
-- [ ] Implement Field Provenance Manager recording immutable evidence records across documents.
-- [ ] Implement Field Matcher mapping corresponding fields across distinct documents.
-- [ ] Implement Conflict Detection Engine classifying:
-  - `EXACT_MATCH`
-  - `FORMAT_VARIATION`
-  - `SPELLING_OR_TRANSLITERATION_VARIATION`
-  - `MATERIAL_CONTRADICTION`
-  - `UNREADABLE_OR_MISSING`
-- [ ] Preserve conflicting evidence records alongside user overrides.
+- [x] Implement Field Provenance Manager recording immutable 1:N evidence records across multiple simultaneous documents.
+- [x] Implement Field Matcher mapping document-specific attributes to canonical application keys.
+- [x] Implement deterministic 5-tier Conflict Detection Engine classifying:
+  - `EXACT_MATCH`: Normalization matches exactly.
+  - `FORMAT_VARIATION`: Date separators (`/` vs `-`) or currency formatting.
+  - `SPELLING_OR_TRANSLITERATION_VARIATION`: Initials and minor edit-distance variations (`Yash Sharma` vs `Yash S Sharma`) producing non-blocking warnings.
+  - `MATERIAL_CONTRADICTION`: Conflicting statutory values (e.g. differing DOBs) producing blocking errors.
+  - `UNREADABLE_OR_MISSING`: Unreadable glyphs (`?`) or missing certificates.
+- [x] Preserve conflicting evidence records during user overrides and confirmations.
+- [x] Build Flutter side-by-side evidence comparator screen (`ConflictResolutionScreen`) prompting applicant to choose or type authoritative values.
 
 ### Week 6 — Phase 5: Confidence-Gated Draft Generation (Core IP)
-- [ ] Implement Field Reliability State Machine:
-  $\text{EXTRACTED} \rightarrow \text{EVIDENCE\_CHECK} \rightarrow \text{READY / NEEDS\_REVIEW / CONFLICTED} \rightarrow \text{USER\_CONFIRMED} \rightarrow \text{ELIGIBLE\_FOR\_DRAFT}$.
-- [ ] Implement multi-dimensional confidence evaluator ($\mathcal{C}_{ocr}, \mathcal{C}_{consist}, \mathcal{C}_{audit}, \mathcal{C}_{rules}$).
-- [ ] Implement Draft Generation Controller with hard blocking gates ensuring unconfirmed/conflicted fields cannot silently enter the draft.
+- [x] Implement formal Field Reliability State Machine:
+  $$\text{EXTRACTED} \longrightarrow \text{EVIDENCE\_CHECK} \longrightarrow (\text{READY\_FOR\_REVIEW} \mid \text{NEEDS\_REVIEW} \mid \text{CONFLICTED} \mid \text{INVALID} \mid \text{MISSING}) \longrightarrow (\text{USER\_CONFIRMED} \mid \text{USER\_CORRECTED}) \longrightarrow \text{ELIGIBLE\_FOR\_DRAFT}$$
+- [x] Implement Multi-Dimensional Confidence Tensor Evaluator evaluating $\mathcal{C}_{ocr}$, $\mathcal{C}_{consist}$, $\mathcal{C}_{audit}$, $\mathcal{C}_{rules}$ and composite reliability scores.
+- [x] Implement Draft Generation Controller with hard blocking gates:
+  - Conflicted fields cannot silently enter final draft.
+  - Unconfirmed low-confidence fields cannot enter draft.
+  - Statutory ineligibility blocks draft generation.
+- [x] Implement final draft package generation endpoint (`POST /v1/drafts/{id}/generate`) producing sanitized application payload with full evidence manifest.
 
 ### Week 7 — Phase 6: Scheme Rules & Dependency DAG (P0)
 - [ ] Create versioned JSON scheme configuration format (`post_matric_scholarship.json`).

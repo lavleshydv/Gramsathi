@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../application_draft/draft_summary_screen.dart';
+import '../conflict_resolution/conflict_resolution_screen.dart';
 
 class FieldReviewScreen extends StatefulWidget {
   final String draftId;
@@ -145,6 +146,28 @@ class _FieldReviewScreenState extends State<FieldReviewScreen> {
             }).toList(),
 
             const SizedBox(height: 24),
+
+            if ((_summary['conflicts'] as List?)?.isNotEmpty ?? false) ...[
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFD97706),
+                ),
+                icon: const Icon(Icons.compare_arrows),
+                label: Text('विसंगति समाधान करें (${(_summary['conflicts'] as List).length} Conflicts) →'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConflictResolutionScreen(
+                        draftId: widget.draftId,
+                        initialSummary: _summary,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
 
             ElevatedButton(
               onPressed: () {

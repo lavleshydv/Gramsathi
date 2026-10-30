@@ -30,11 +30,8 @@ class ConflictDetector:
                 "Unreadable or missing text in one or more documents.",
             )
 
-        norm_a = ConflictDetector.normalize_string(val_a)
-        norm_b = ConflictDetector.normalize_string(val_b)
-
-        # 1. Exact Match
-        if norm_a == norm_b:
+        # 1. Raw exact identity
+        if val_a.strip() == val_b.strip():
             return (
                 ConflictType.EXACT_MATCH,
                 ConflictSeverity.INFO,
@@ -42,9 +39,8 @@ class ConflictDetector:
                 "Exact match across supporting documents.",
             )
 
-        # 2. Date of Birth Comparison: Material contradiction if different
+        # 2. Date of Birth Comparison: Format variation vs Material contradiction
         if field_key == "date_of_birth":
-            # Check format variation e.g. 15-08-2004 vs 15/08/2004
             clean_a = val_a.replace("-", "/").strip()
             clean_b = val_b.replace("-", "/").strip()
             if clean_a == clean_b:
@@ -84,6 +80,18 @@ class ConflictDetector:
                     )
             except ValueError:
                 pass
+
+        norm_a = ConflictDetector.normalize_string(val_a)
+        norm_b = ConflictDetector.normalize_string(val_b)
+
+        # 4. Normalized Text Exact Match
+        if norm_a == norm_b:
+            return (
+                ConflictType.EXACT_MATCH,
+                ConflictSeverity.INFO,
+                "सभी दस्तावेज़ों में जानकारी बिल्कुल समान है।",
+                "Exact match across supporting documents.",
+            )
 
         # 4. Name / Text comparison
         tokens_a = set(norm_a.split())

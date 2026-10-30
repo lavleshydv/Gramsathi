@@ -73,6 +73,18 @@ class ApiClient {
     throw Exception('Failed to extract document: ${response.body}');
   }
 
+  Future<Map<String, dynamic>> confirmField(String draftId, String fieldId, String confirmedValue) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/v1/drafts/$draftId/fields/$fieldId/confirm'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'confirmed_value': confirmedValue}),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to confirm field: ${response.body}');
+  }
+
   Future<Map<String, dynamic>> getDraftEvidence(String draftId) async {
     final response = await http.get(
       Uri.parse('$baseUrl${ApiConstants.draftFields(draftId)}'),

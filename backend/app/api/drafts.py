@@ -6,6 +6,7 @@ from app.models.schemas import (
     SaveFieldsRequest,
     FieldCorrectionRequest,
     DraftSummaryResponse,
+    FinalDraftPackageResponse,
     FieldReliabilityState,
 )
 from app.database.store import store
@@ -109,4 +110,18 @@ def get_draft_summary(draft_id: str):
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft_service.get_summary(draft)
+
+
+@router.post("/{draft_id}/generate", response_model=FinalDraftPackageResponse)
+def generate_draft_package(draft_id: str):
+    draft = store.get_draft(draft_id)
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+
+    from app.intelligence.draft_controller import draft_controller, DraftGatingException
+    try:
+        package = draft_controller.generate_final_draft_package(draft)
+        return package
+    except DraftGatingException as e:
+        raise HTTPException(status_code=422, detail=str(e))
 

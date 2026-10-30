@@ -2,8 +2,16 @@
 from typing import Dict, Any, Optional
 from app.database.store import store
 from app.models.domain import DraftRecord, AuditRecord
-from app.models.schemas import DraftSummaryResponse, ExtractedFieldSummary, EvidenceItem, ConflictItem, ValidationIssueItem
+from app.models.schemas import (
+    DraftSummaryResponse,
+    ExtractedFieldSummary,
+    EvidenceItem,
+    ConflictItem,
+    ValidationIssueItem,
+    ConflictSeverity,
+)
 from app.intelligence.draft_controller import draft_controller
+from app.intelligence.confidence_manager import confidence_manager
 from app.rules.rule_engine import rule_engine
 
 
@@ -11,6 +19,11 @@ class DraftService:
     @staticmethod
     def get_summary(draft: DraftRecord) -> DraftSummaryResponse:
         is_ready, blocking_reasons = draft_controller.assess_draft_readiness(draft)
+
+        field_values = {k: f.candidate_value for k, f in draft.fields.items()}
+        validation_issues = rule_engine.validate_fields(field_values)
+        issue_map = {iss.field_key: iss.message_en for iss in validation_issues if iss.severity == ConflictSeverity.BLOCKING_ERROR}
+        conflict_map = {c.field_key: c for c in draft.conflicts if c.status == "UNRESOLVED"}
 
         field_summaries: Dict[str, ExtractedFieldSummary] = {}
         for key, field in draft.fields.items():
@@ -26,6 +39,11 @@ class DraftService:
                 )
                 for ev in field.evidences
             ]
+
+            active_conf = conflict_map.get(key)
+            statutory_err = issue_map.get(key)
+            tensor = confidence_manager.calculate_confidence_tensor(field, active_conf, statutory_err)
+
             field_summaries[key] = ExtractedFieldSummary(
                 field_id=field.field_id,
                 field_key=field.key,
@@ -34,7 +52,9 @@ class DraftService:
                 candidate_value=field.candidate_value,
                 status=field.status,
                 requires_user_confirmation=field.requires_user_confirmation,
-                ocr_confidence=ev_items[0].ocr_confidence if ev_items else None,
+                ocr_confidence=tensor.c_ocr,
+                consistency_score=tensor.c_consist,
+                confidence_tensor=tensor,
                 evidences=ev_items,
             )
 
@@ -53,9 +73,6 @@ class DraftService:
             for c in draft.conflicts
         ]
 
-        field_values = {k: f.candidate_value for k, f in draft.fields.items()}
-        validation_issues = rule_engine.validate_fields(field_values)
-
         return DraftSummaryResponse(
             draft_id=draft.draft_id,
             service_id=draft.service_id,
@@ -71,4 +88,3 @@ class DraftService:
 
 
 draft_service = DraftService()
-
