@@ -1,0 +1,47 @@
+{
+  "test_case_id": "CASE_01_HAPPY_PATH",
+  "description": "Clean scans, 100% consistent names, dates, and amounts across all supporting documents. Immediate draft readiness.",
+  "expected_outcome": {
+    "reconciliation_status": "EXACT_MATCH",
+    "conflicts_count": 0,
+    "draft_eligible": true,
+    "blocking_errors": []
+  },
+  "documents": [
+    {
+      "document_id": "DOC-SYN-001",
+      "document_type": "AADHAAR",
+      "file_name": "synthetic_aadhaar_clean.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "name": {"raw_text": "Yash Sharma", "confidence": 0.98, "box": [120, 210, 240, 35]},
+        "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [120, 260, 180, 32]},
+        "masked_aadhaar": {"raw_text": "XXXX-XXXX-9012", "confidence": 0.97, "box": [120, 310, 220, 34]}
+      }
+    },
+    {
+      "document_id": "DOC-SYN-002",
+      "document_type": "MARKSHEET",
+      "file_name": "synthetic_marksheet_clean.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "student_name": {"raw_text": "Yash Sharma", "confidence": 0.97, "box": [140, 180, 230, 30]},
+        "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [140, 220, 175, 30]},
+        "percentage": {"raw_text": "78.4", "confidence": 0.96, "box": [350, 420, 90, 30]},
+        "institution": {"raw_text": "Government Polytechnic Moradabad", "confidence": 0.95, "box": [140, 120, 360, 35]}
+      }
+    },
+    {
+      "document_id": "DOC-SYN-003",
+      "document_type": "INCOME_CERTIFICATE",
+      "file_name": "synthetic_income_cert_clean.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "applicant_name": {"raw_text": "Yash Sharma", "confidence": 0.96, "box": [150, 160, 225, 32]},
+        "annual_income": {"raw_text": "120000", "confidence": 0.98, "box": [220, 310, 140, 35]},
+        "certificate_no": {"raw_text": "INC/UP/2026/891234", "confidence": 0.97, "box": [150, 90, 210, 30]}
+      }
+    }
+  ]
+}
+

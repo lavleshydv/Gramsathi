@@ -1,0 +1,36 @@
+{
+  "test_case_id": "CASE_02_NAME_VARIATION",
+  "description": "Aadhaar records 'Yash Sharma' while Marksheet records 'Yash S Sharma'. Tests spelling/initials variation classification and triggers non-blocking user confirmation.",
+  "expected_outcome": {
+    "reconciliation_status": "SPELLING_OR_TRANSLITERATION_VARIATION",
+    "conflicts_count": 1,
+    "conflict_field": "full_name",
+    "severity": "WARNING",
+    "requires_user_confirmation": true,
+    "draft_eligible_after_confirmation": true
+  },
+  "documents": [
+    {
+      "document_id": "DOC-SYN-004",
+      "document_type": "AADHAAR",
+      "file_name": "synthetic_aadhaar_yash.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "name": {"raw_text": "Yash Sharma", "confidence": 0.98, "box": [120, 210, 240, 35]},
+        "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [120, 260, 180, 32]}
+      }
+    },
+    {
+      "document_id": "DOC-SYN-005",
+      "document_type": "MARKSHEET",
+      "file_name": "synthetic_marksheet_initial.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "student_name": {"raw_text": "Yash S Sharma", "confidence": 0.97, "box": [140, 180, 250, 30]},
+        "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [140, 220, 175, 30]},
+        "percentage": {"raw_text": "72.0", "confidence": 0.95, "box": [350, 420, 90, 30]}
+      }
+    }
+  ]
+}
+

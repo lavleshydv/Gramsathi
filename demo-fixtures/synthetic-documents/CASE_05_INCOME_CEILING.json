@@ -1,0 +1,25 @@
+{
+  "test_case_id": "CASE_05_INCOME_CEILING",
+  "description": "Income Certificate proves annual income of ₹3,20,000, exceeding statutory limit of ₹2,50,000. Reconciles cleanly but triggers statutory ineligibility during scheme rule validation.",
+  "expected_outcome": {
+    "reconciliation_status": "EXACT_MATCH",
+    "conflicts_count": 0,
+    "statutory_validation_status": "INELIGIBLE",
+    "draft_eligible": false,
+    "blocking_errors": ["Annual income ₹3,20,000 exceeds statutory limit of ₹2,50,000 for Post-Matric Scholarship."]
+  },
+  "documents": [
+    {
+      "document_id": "DOC-SYN-009",
+      "document_type": "INCOME_CERTIFICATE",
+      "file_name": "synthetic_income_over_limit.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "applicant_name": {"raw_text": "Pooja Devi", "confidence": 0.98, "box": [150, 160, 225, 32]},
+        "annual_income": {"raw_text": "320000", "confidence": 0.99, "box": [220, 310, 140, 35]},
+        "certificate_no": {"raw_text": "INC/UP/2026/654321", "confidence": 0.98, "box": [150, 90, 210, 30]}
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,36 @@
+{
+  "test_case_id": "CASE_04_CONTRADICTION",
+  "description": "Marksheet reports DOB '12/04/2005' while Aadhaar reports DOB '15/08/2004'. Material contradiction on statutory age attribute. Hard blocks draft generation until explicit resolution.",
+  "expected_outcome": {
+    "reconciliation_status": "MATERIAL_CONTRADICTION",
+    "conflicts_count": 1,
+    "conflict_field": "date_of_birth",
+    "severity": "BLOCKING_ERROR",
+    "draft_eligible": false,
+    "blocking_errors": ["Material contradiction in date_of_birth: '15/08/2004' (AADHAAR) vs '12/04/2005' (MARKSHEET)."]
+  },
+  "documents": [
+    {
+      "document_id": "DOC-SYN-007",
+      "document_type": "AADHAAR",
+      "file_name": "synthetic_aadhaar_dob_2004.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "name": {"raw_text": "Anil Verma", "confidence": 0.98, "box": [120, 210, 240, 35]},
+        "dob": {"raw_text": "15/08/2004", "confidence": 0.99, "box": [120, 260, 180, 32]}
+      }
+    },
+    {
+      "document_id": "DOC-SYN-008",
+      "document_type": "MARKSHEET",
+      "file_name": "synthetic_marksheet_dob_2005.pdf",
+      "quality": "CLEAN",
+      "extracted_data": {
+        "student_name": {"raw_text": "Anil Verma", "confidence": 0.98, "box": [140, 180, 230, 30]},
+        "dob": {"raw_text": "12/04/2005", "confidence": 0.98, "box": [140, 220, 175, 30]},
+        "percentage": {"raw_text": "65.5", "confidence": 0.95, "box": [350, 420, 90, 30]}
+      }
+    }
+  ]
+}
+

@@ -244,3 +244,132 @@ model WeatherAlert {
 
   @@index([state, district, validUntil])
 }
+
+
+// ============================================================================
+// Core Innovation: Evidence-Linked, Confidence-Gated Application Data Models
+// ============================================================================
+
+enum FieldReliabilityStatus {
+  EXTRACTED
+  EVIDENCE_CHECK
+  READY_FOR_REVIEW
+  NEEDS_REVIEW
+  CONFLICTED
+  USER_CONFIRMED
+  USER_CORRECTED
+  ELIGIBLE_FOR_DRAFT
+  INVALID
+  MISSING
+}
+
+enum ConflictTypeEnum {
+  EXACT_MATCH
+  FORMAT_VARIATION
+  SPELLING_OR_TRANSLITERATION_VARIATION
+  MATERIAL_CONTRADICTION
+  UNREADABLE_OR_MISSING
+}
+
+model ApplicationDraft {
+  id           String             @id @default(uuid())
+  serviceId    String             @default("POST_MATRIC_STATE_SCHOLARSHIP")
+  ruleVersion  String             @default("1.0")
+  status       String             @default("IN_PROGRESS") // IN_PROGRESS, READY, SUBMITTED
+  isReady      Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  documents    DocumentMetadata[]
+  fields       ExtractedField[]
+  conflicts    FieldConflict[]
+  auditEvents  AuditEvent[]
+}
+
+model DocumentMetadata {
+  id           String           @id @default(uuid())
+  draftId      String
+  draft        ApplicationDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  documentType String           // AADHAAR, MARKSHEET, INCOME_CERTIFICATE
+  fileName     String
+  sha256Hash   String
+  storagePath  String
+  uploadedAt   DateTime         @default(now())
+  evidences    FieldEvidence[]
+
+  @@index([draftId, documentType])
+}
+
+model ExtractedField {
+  id              String                 @id @default(uuid())
+  draftId         String
+  draft           ApplicationDraft       @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  fieldKey        String                 // full_name, date_of_birth, annual_income, etc.
+  displayNameHi   String
+  displayNameEn   String
+  candidateValue  String?
+  confirmedValue  String?
+  userConfirmed   Boolean                @default(false)
+  status          FieldReliabilityStatus @default(EXTRACTED)
+  updatedAt       DateTime               @updatedAt
+
+  evidences       FieldEvidence[]
+  conflicts       FieldConflict[]
+  confirmations   FieldConfirmation[]
+
+  @@unique([draftId, fieldKey])
+}
+
+model FieldEvidence {
+  id             String           @id @default(uuid())
+  fieldId        String
+  field          ExtractedField   @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  documentId     String
+  document       DocumentMetadata @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  rawText        String
+  ocrConfidence  Float            @default(0.95)
+  pageNumber     Int              @default(1)
+  sourceRegion   Json?            // {x, y, width, height}
+  createdAt      DateTime         @default(now())
+
+  @@index([fieldId, documentId])
+}
+
+model FieldConflict {
+  id             String           @id @default(uuid())
+  draftId        String
+  draft          ApplicationDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  fieldId        String
+  field          ExtractedField   @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  conflictType   ConflictTypeEnum
+  severity       String           // INFO, WARNING, BLOCKING_ERROR
+  status         String           @default("UNRESOLVED") // UNRESOLVED, RESOLVED
+  messageHi      String
+  messageEn      String
+  evidenceIds    String[]
+  createdAt      DateTime         @default(now())
+
+  @@index([draftId, status])
+}
+
+model FieldConfirmation {
+  id             String         @id @default(uuid())
+  fieldId        String
+  field          ExtractedField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  actor          String         // APPLICANT, OPERATOR
+  action         String         // USER_CONFIRMED, USER_CORRECTED
+  previousValue  String?
+  confirmedValue String
+  confirmedAt    DateTime       @default(now())
+}
+
+model AuditEvent {
+  id         String           @id @default(uuid())
+  draftId    String
+  draft      ApplicationDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  eventType  String           // DRAFT_CREATED, DOCUMENT_UPLOADED, OCR_EXTRACTED, CONFLICT_DETECTED
+  payload    Json
+  createdAt  DateTime         @default(now())
+
+  @@index([draftId, eventType])
+}

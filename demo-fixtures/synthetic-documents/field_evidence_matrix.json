@@ -1,0 +1,85 @@
+{
+  "target_scheme": "POST_MATRIC_STATE_SCHOLARSHIP",
+  "scheme_name_hi": "पोस्ट-मैट्रिक राज्य छात्रवृत्ति योजना (Post-Matric State Scholarship)",
+  "version": "1.0.0",
+  "statutory_criteria": {
+    "income_ceiling_annual_inr": 250000,
+    "minimum_percentage": 50.0,
+    "eligible_categories": ["SC", "ST", "OBC", "EWS"],
+    "eligible_courses": ["Class 11", "Class 12", "Graduation", "Post-Graduation", "Diploma"]
+  },
+  "fields": [
+    {
+      "field_key": "full_name",
+      "display_name_en": "Applicant Full Name",
+      "display_name_hi": "आवेदक का पूरा नाम",
+      "data_type": "string",
+      "required": true,
+      "reconciliation_rule": "MUST_EXACT_MATCH_OR_PHONETIC_CONFIRMED",
+      "acceptable_source_documents": [
+        {"doc_type": "AADHAAR", "priority": 1, "attribute": "name"},
+        {"doc_type": "MARKSHEET", "priority": 2, "attribute": "student_name"},
+        {"doc_type": "INCOME_CERTIFICATE", "priority": 3, "attribute": "applicant_name"}
+      ]
+    },
+    {
+      "field_key": "date_of_birth",
+      "display_name_en": "Date of Birth",
+      "display_name_hi": "जन्म तिथि",
+      "data_type": "date",
+      "required": true,
+      "reconciliation_rule": "MUST_EXACT_MATCH_NO_VARIATION_PERMITTED",
+      "acceptable_source_documents": [
+        {"doc_type": "AADHAAR", "priority": 1, "attribute": "dob"},
+        {"doc_type": "MARKSHEET", "priority": 2, "attribute": "dob"}
+      ]
+    },
+    {
+      "field_key": "annual_income",
+      "display_name_en": "Annual Family Income",
+      "display_name_hi": "पारिवारिक वार्षिक आय",
+      "data_type": "number",
+      "required": true,
+      "reconciliation_rule": "STATUTORY_AUTHORITATIVE_DOCUMENT_ONLY",
+      "acceptable_source_documents": [
+        {"doc_type": "INCOME_CERTIFICATE", "priority": 1, "attribute": "annual_income"}
+      ]
+    },
+    {
+      "field_key": "marks_percentage",
+      "display_name_en": "Previous Academic Percentage",
+      "display_name_hi": "पिछली कक्षा के प्राप्तांक प्रतिशत",
+      "data_type": "number",
+      "required": true,
+      "reconciliation_rule": "STATUTORY_AUTHORITATIVE_DOCUMENT_ONLY",
+      "acceptable_source_documents": [
+        {"doc_type": "MARKSHEET", "priority": 1, "attribute": "percentage"}
+      ]
+    },
+    {
+      "field_key": "category",
+      "display_name_en": "Social Category",
+      "display_name_hi": "सामाजिक श्रेणी (वर्ग)",
+      "data_type": "string",
+      "required": true,
+      "reconciliation_rule": "CASTE_CERT_OR_AADHAAR",
+      "acceptable_source_documents": [
+        {"doc_type": "CASTE_CERTIFICATE", "priority": 1, "attribute": "category"},
+        {"doc_type": "MARKSHEET", "priority": 2, "attribute": "category"}
+      ]
+    },
+    {
+      "field_key": "institution_name",
+      "display_name_en": "College / Institution Name",
+      "display_name_hi": "महाविद्यालय / संस्थान का नाम",
+      "data_type": "string",
+      "required": true,
+      "reconciliation_rule": "FEES_RECEIPT_OR_MARKSHEET",
+      "acceptable_source_documents": [
+        {"doc_type": "MARKSHEET", "priority": 1, "attribute": "institution"},
+        {"doc_type": "FEES_RECEIPT", "priority": 2, "attribute": "institution"}
+      ]
+    }
+  ]
+}
+
