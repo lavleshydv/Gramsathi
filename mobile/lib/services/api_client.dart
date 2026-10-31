@@ -140,5 +140,40 @@ class ApiClient {
     }
     throw Exception('Failed to fetch audio guidance: ${response.body}');
   }
+
+  Future<Map<String, dynamic>> saveDraftCheckpoint(String draftId, Map<String, dynamic> snapshot) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl${ApiConstants.draftCheckpoint(draftId)}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'snapshot': snapshot}),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to save checkpoint: ${response.body}');
+  }
+
+  Future<Map<String, dynamic>> getLatestCheckpoint(String draftId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl${ApiConstants.draftCheckpoint(draftId)}'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to fetch latest checkpoint: ${response.body}');
+  }
+
+  Future<Map<String, dynamic>> maskAadhaar(String text) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl${ApiConstants.maskAadhaar}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'text': text}),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to mask Aadhaar: ${response.body}');
+  }
 }
 

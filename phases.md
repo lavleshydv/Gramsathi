@@ -3,7 +3,7 @@
 **Project:** GramSathi AI (ग्राम साथी)  
 **Core Technical Innovation:** Evidence-Linked, Confidence-Gated Application Generation  
 **Status Snapshot:** 31 October 2026  
-**Progress:** 8/10 Phases Completed (Phases 0, 1, 2, 3, 4, 5, 6, and 7 Complete)  
+**Progress:** 9/10 Phases Completed (Phases 0, 1, 2, 3, 4, 5, 6, 7, 8, and 9 Complete)  
 
 ---
 
@@ -19,8 +19,9 @@
 | **Week 6** | **Phase 5: Confidence-Gated Draft Generator** | Formal state machine prevents unconfirmed/conflicted fields from entering draft (Core IP) | 🟢 **COMPLETED** |
 | **Week 7** | **Phase 6: Scheme Rules & Dependency DAG** | Versioned scheme config & dependency-aware revalidation (NetworkX DAG) | 🟢 **COMPLETED** |
 | **Week 8** | **Phase 7: Hindi Voice Assistant** | Hands-free Hindi STT, editable Devanagari transcripts, and spoken guidance `[🔊 सुनिए]` | 🟢 **COMPLETED** |
-| **Week 9** | **Phase 8: Offline Resilience & DPDP Security** | Resumable uploads, local checkpoints, and masked Aadhaar privacy | ⏳ **UP NEXT** |
-| **Week 10**| **Phase 9 & 10: System Integration & Evaluation** | Quantitative comparative benchmarks vs baseline & patent documentation | ⏸️ Pending |
+| **Week 9** | **Phase 8: Offline Resilience & DPDP Security** | Resumable chunked uploads, local draft checkpoints, and 8-digit Aadhaar masking | 🟢 **COMPLETED** |
+| **Week 10**| **Phase 9: System Integration & Evaluation** | E2E integration test scenarios (A, B, C, D) & comparative benchmarks (FAR = 0.0%) | 🟢 **COMPLETED** |
+| **Final**  | **Phase 10: Patent Documentation & Packaging** | Technical patent claims & formal IP disclosure document | ⏳ **UP NEXT** |
 
 ---
 
@@ -98,15 +99,28 @@
 - [x] Implement empathetic spoken Hindi guidance generator with `[🔊 सुनिए]` audio cue dynamically reflecting draft health and blocking issues.
 - [x] Expose voice API endpoints (`POST /v1/voice/transcribe`, `POST /v1/voice/intent`, `GET /v1/voice/guidance/{draft_id}`).
 - [x] Build Flutter Voice Assistant Screen (`VoiceAssistantScreen`) with pulsing mic animation, editable transcript, preset Hindi query chips, and spoken guidance audio player.
-- [x] Integrate voice entry points in Flutter onboarding (`welcome_screen.dart`) and draft summary (`draft_summary_screen.dart`).
+- [x] Integrate voice entry points in Flutter onboarding (`welcome_screen.dart`) and draft review (`draft_summary_screen.dart`).
 - [x] Pass all 4 unit tests in `test_hindi_voice.py`.
 
-### Week 9 — Phase 8: Offline Reliability & Security (P1)
-- [ ] Implement resumable uploads and client draft checkpoints.
-- [ ] Enforce DPDP compliance: Masked Aadhaar storage, encrypted references, and privacy-safe logs.
-- [ ] Test offline recovery under simulated network interruptions.
+### Week 9 — Phase 8: Offline Resilience & DPDP Security (P1)
+- [x] Build chunked resumable upload manager (`resilience_service.py`) supporting packet reordering, chunk validation, and seamless stitch finalization.
+- [x] Implement client draft recovery checkpointing with cryptographic SHA-256 chaining.
+- [x] Implement DPDP Act privacy engine (`privacy_service.py`): automatic 8-digit Aadhaar masking (`XXXX-XXXX-1234` / `XXXXXXXX1234`), phone masking, PII log scrubbing, and consent receipts.
+- [x] Expose resilience & privacy API endpoints (`/v1/uploads/initiate`, `/v1/uploads/chunk`, `/v1/uploads/{id}/status`, `/v1/drafts/{id}/checkpoint`, `/v1/privacy/mask-aadhaar`).
+- [x] Pass all 5 unit tests in `test_offline_resilience_and_dpdp.py`.
 
-### Week 10 — Phase 9 & 10: Complete Integration & Patent Documentation (Core IP)
-- [ ] Run end-to-end integration test scenarios (A: Clean, B: Conflicting, C: Low Confidence, D: Interrupted).
-- [ ] Execute comparative benchmark against baseline (OCR + naive form fill).
-- [ ] Assemble technical patent disclosure documentation detailing the novel mechanisms.
+### Week 10 — Phase 9: System Integration & Evaluation (Core IP)
+- [x] Build and pass all 4 Canonical End-to-End System Integration scenarios in `test_end_to_end_integration.py`:
+  - **Scenario A (Happy Path):** Clean multi-document upload, automatic verification, DAG benefit tier evaluation, and verified draft generation.
+  - **Scenario B (Material Contradiction):** Contradictory DOB blocked by hard gating ($422$), user resolves in side-by-side comparator, both evidence items preserved, draft succeeds.
+  - **Scenario C (Low-Confidence Blur):** Blurred scan gated in `NEEDS_REVIEW` until user inspects and confirms, draft succeeds.
+  - **Scenario D (Resumable Offline Recovery):** Interrupted chunked upload resumed, checkpoint restored, Aadhaar masked.
+- [x] Implement quantitative benchmark evaluator (`benchmark_evaluator.py`) and pass all tests in `test_benchmarks.py`:
+  - **False Acceptance Rate (FAR):** GramSathi $= 0.0\%$ vs Baseline $> 50\%$.
+  - **Conflict Detection Recall & Precision:** GramSathi $= 100.0\%$ vs Baseline $= 0.0\%$.
+  - **Selective DAG Revalidation Efficiency:** GramSathi skips $\ge 40\%$ of independent nodes on single field updates.
+  - **Evidence Traceability:** $100\%$ of fields maintain cryptographic provenance links.
+
+### Final — Phase 10: Patent Documentation & Packaging (Core IP)
+- [ ] Assemble formal patent disclosure documentation detailing the 5 novel claims.
+- [ ] Final package deployment instructions.

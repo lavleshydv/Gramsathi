@@ -8,6 +8,7 @@ from app.api.evidence import router as evidence_router
 from app.api.reconciliation import router as reconciliation_router
 from app.api.validation import router as validation_router
 from app.api.voice import router as voice_router
+from app.api.resilience import router as resilience_router
 
 app = FastAPI(
     title="GramSathi AI — Evidence Intelligence Backend",
@@ -32,6 +33,7 @@ app.include_router(evidence_router)
 app.include_router(reconciliation_router)
 app.include_router(validation_router)
 app.include_router(voice_router)
+app.include_router(resilience_router)
 
 
 @app.get("/")

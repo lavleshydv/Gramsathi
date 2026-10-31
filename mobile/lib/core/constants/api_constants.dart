@@ -21,5 +21,13 @@ class ApiConstants {
   static const String voiceTranscribe = '/v1/voice/transcribe';
   static const String voiceIntent = '/v1/voice/intent';
   static String voiceGuidance(String draftId) => '/v1/voice/guidance/$draftId';
+
+  // Resilience & DPDP Checkpoints
+  static const String uploadsInitiate = '/v1/uploads/initiate';
+  static const String uploadsChunk = '/v1/uploads/chunk';
+  static String uploadStatus(String uploadId) => '/v1/uploads/$uploadId/status';
+  static String uploadFinalize(String uploadId) => '/v1/uploads/$uploadId/finalize';
+  static String draftCheckpoint(String draftId) => '/v1/drafts/$draftId/checkpoint';
+  static const String maskAadhaar = '/v1/privacy/mask-aadhaar';
 }
 
