@@ -1,8 +1,9 @@
 {
   "service_id": "POST_MATRIC_STATE_SCHOLARSHIP",
   "service_name_en": "Post-Matric State Scholarship for SC/ST/OBC/EWS",
-  "service_name_hi": "पोस्ट-मैट्रिक राज्य छात्रवृत्ति योजना",
-  "rule_version": "1.0",
+  "service_name_hi": "पोस्ट-मैट्रिक राज्य छात्रवृत्ति योजना (एससी/एसटी/ओबीसी/ईडब्ल्यूएस)",
+  "rule_version": "2.0.0",
+  "statutory_authority": "Department of Social Welfare & Empowerment",
   "required_fields": [
     "full_name",
     "date_of_birth",
@@ -34,14 +35,59 @@
     "date_of_birth": {
       "type": "date",
       "format": "DD/MM/YYYY",
-      "message_hi": "जन्म तिथि DD/MM/YYYY प्रारूप में होनी चाहिए।",
-      "message_en": "Date of birth must be in DD/MM/YYYY format."
+      "min_age_years": 15,
+      "max_age_years": 35,
+      "message_hi": "जन्म तिथि DD/MM/YYYY प्रारूप में और आयु 15 से 35 वर्ष के मध्य होनी चाहिए।",
+      "message_en": "Date of birth must be DD/MM/YYYY format and age must be between 15 and 35 years."
     }
   },
-  "dependency_dag": {
-    "annual_income": ["statutory_income_check", "fee_reimbursement_eligibility"],
-    "marks_percentage": ["academic_merit_check"],
-    "category": ["quota_validation", "fee_waiver_tier"]
+  "conditional_benefits": {
+    "tier_1_full_waiver": {
+      "condition_categories": ["SC", "ST"],
+      "max_income": 100000,
+      "benefit_en": "100% Tuition Fee Waiver + ₹1,200/month Hosteller Maintenance Allowance",
+      "benefit_hi": "100% शिक्षण शुल्क छूट + ₹1,200/माह छात्रावास भत्ता"
+    },
+    "tier_2_standard_waiver": {
+      "condition_categories": ["SC", "ST", "OBC", "EWS"],
+      "max_income": 250000,
+      "benefit_en": "75% Tuition Fee Waiver + Annual Book Grant",
+      "benefit_hi": "75% शिक्षण शुल्क छूट + वार्षिक पुस्तक अनुदान"
+    }
+  },
+  "dag_graph": {
+    "nodes": [
+      {"id": "full_name", "type": "FIELD"},
+      {"id": "date_of_birth", "type": "FIELD"},
+      {"id": "annual_income", "type": "FIELD"},
+      {"id": "marks_percentage", "type": "FIELD"},
+      {"id": "category", "type": "FIELD"},
+      {"id": "institution_name", "type": "FIELD"},
+      {"id": "identity_completeness_check", "type": "RULE"},
+      {"id": "age_eligibility_check", "type": "RULE"},
+      {"id": "statutory_income_check", "type": "RULE"},
+      {"id": "academic_merit_check", "type": "RULE"},
+      {"id": "caste_quota_check", "type": "RULE"},
+      {"id": "institution_validity_check", "type": "RULE"},
+      {"id": "fee_waiver_tier_evaluation", "type": "DERIVED"},
+      {"id": "overall_statutory_readiness", "type": "DECISION"}
+    ],
+    "edges": [
+      ["full_name", "identity_completeness_check"],
+      ["date_of_birth", "age_eligibility_check"],
+      ["annual_income", "statutory_income_check"],
+      ["annual_income", "fee_waiver_tier_evaluation"],
+      ["marks_percentage", "academic_merit_check"],
+      ["category", "caste_quota_check"],
+      ["category", "fee_waiver_tier_evaluation"],
+      ["institution_name", "institution_validity_check"],
+      ["identity_completeness_check", "overall_statutory_readiness"],
+      ["age_eligibility_check", "overall_statutory_readiness"],
+      ["statutory_income_check", "overall_statutory_readiness"],
+      ["academic_merit_check", "overall_statutory_readiness"],
+      ["caste_quota_check", "overall_statutory_readiness"],
+      ["institution_validity_check", "overall_statutory_readiness"],
+      ["fee_waiver_tier_evaluation", "overall_statutory_readiness"]
+    ]
   }
 }
-

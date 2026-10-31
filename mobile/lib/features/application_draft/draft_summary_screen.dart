@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../voice_assistant/voice_assistant_screen.dart';
 
 class DraftSummaryScreen extends StatelessWidget {
   final String draftId;
@@ -67,7 +68,41 @@ class DraftSummaryScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 14),
+
+            // Spoken Guidance Action Pill
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VoiceAssistantScreen(draftId: draftId),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF16A34A)),
+                ),
+                child: const Row(
+                  children: [
+                    Text('🔊', style: TextStyle(fontSize: 20)),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '[🔊 सुनिए] आवाज़ में आवेदन की स्थिति और सलाह सुनें',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF15803D)),
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF15803D)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Validation issues if any
             if (issues.isNotEmpty) ...[

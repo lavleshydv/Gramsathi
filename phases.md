@@ -2,8 +2,8 @@
 
 **Project:** GramSathi AI (ग्राम साथी)  
 **Core Technical Innovation:** Evidence-Linked, Confidence-Gated Application Generation  
-**Status Snapshot:** 30 October 2026  
-**Progress:** 6/10 Phases Completed (Phase 0, 1, 2, 3, 4, and 5 Complete)  
+**Status Snapshot:** 31 October 2026  
+**Progress:** 8/10 Phases Completed (Phases 0, 1, 2, 3, 4, 5, 6, and 7 Complete)  
 
 ---
 
@@ -17,9 +17,9 @@
 | **Week 4** | **Phase 3: OCR Extraction Pipeline** | Documents produce candidate fields with coordinate bounding boxes & OCR confidence | 🟢 **COMPLETED** |
 | **Week 5** | **Phase 4: Evidence Reconciliation Engine** | Multi-source conflict detection & provenance tracking working (Core IP) | 🟢 **COMPLETED** |
 | **Week 6** | **Phase 5: Confidence-Gated Draft Generator** | Formal state machine prevents unconfirmed/conflicted fields from entering draft (Core IP) | 🟢 **COMPLETED** |
-| **Week 7** | **Phase 6: Scheme Rules & Dependency DAG** | Versioned scheme config & dependency-aware revalidation | ⏳ **UP NEXT** |
-| **Week 8** | **Phase 7: Hindi Voice Assistant** | Hands-free Hindi STT, transcript review, and spoken guidance | ⏸️ Pending |
-| **Week 9** | **Phase 8: Offline Resilience & DPDP Security** | Resumable uploads, local checkpoints, and masked Aadhaar privacy | ⏸️ Pending |
+| **Week 7** | **Phase 6: Scheme Rules & Dependency DAG** | Versioned scheme config & dependency-aware revalidation (NetworkX DAG) | 🟢 **COMPLETED** |
+| **Week 8** | **Phase 7: Hindi Voice Assistant** | Hands-free Hindi STT, editable Devanagari transcripts, and spoken guidance `[🔊 सुनिए]` | 🟢 **COMPLETED** |
+| **Week 9** | **Phase 8: Offline Resilience & DPDP Security** | Resumable uploads, local checkpoints, and masked Aadhaar privacy | ⏳ **UP NEXT** |
 | **Week 10**| **Phase 9 & 10: System Integration & Evaluation** | Quantitative comparative benchmarks vs baseline & patent documentation | ⏸️ Pending |
 
 ---
@@ -86,14 +86,20 @@
 - [x] Implement final draft package generation endpoint (`POST /v1/drafts/{id}/generate`) producing sanitized application payload with full evidence manifest.
 
 ### Week 7 — Phase 6: Scheme Rules & Dependency DAG (P0)
-- [ ] Create versioned JSON scheme configuration format (`post_matric_scholarship.json`).
-- [ ] Implement deterministic rule validators for statutory boundaries.
-- [ ] Implement dependency-aware validation graph (DAG) re-evaluating only dirty nodes on field updates.
+- [x] Create versioned JSON scheme configuration format (`post_matric_scholarship.json` v2.0.0).
+- [x] Define multi-tier conditional benefits (Tier 1 full waiver for SC/ST with income ≤ ₹1L; Tier 2 standard waiver for income ≤ ₹2.5L).
+- [x] Implement formal Directed Acyclic Graph (`dependency_manager.py`) using NetworkX with strict acyclicity verification (0 cycles).
+- [x] Implement downstream dependency tracing and selective dirty node re-evaluation (skipping independent nodes).
+- [x] Expose selective revalidation endpoint (`POST /v1/drafts/{id}/dag-revalidate`) and pass all 5 unit tests in `test_dependency_dag.py`.
 
 ### Week 8 — Phase 7: Hindi Voice Assistant (P1)
-- [ ] Connect Hindi Speech-to-Text engine with editable transcript.
-- [ ] Implement voice intent classification for scheme onboarding and document queries.
-- [ ] Implement spoken audio guidance (`[🔊 सुनिए]`) for low-literacy users.
+- [x] Build Hindi Speech Processing service (`speech_service.py`) supporting speech-to-text with editable Devanagari transcripts (`is_editable: True`).
+- [x] Implement Hindi Intent Classifier recognizing 5 structured GovTech intents: `CHECK_STATUS`, `RESOLVE_CONFLICT`, `EXPLAIN_ERROR`, `DOCUMENT_QUERY`, and `APPLY_SCHEME`.
+- [x] Implement empathetic spoken Hindi guidance generator with `[🔊 सुनिए]` audio cue dynamically reflecting draft health and blocking issues.
+- [x] Expose voice API endpoints (`POST /v1/voice/transcribe`, `POST /v1/voice/intent`, `GET /v1/voice/guidance/{draft_id}`).
+- [x] Build Flutter Voice Assistant Screen (`VoiceAssistantScreen`) with pulsing mic animation, editable transcript, preset Hindi query chips, and spoken guidance audio player.
+- [x] Integrate voice entry points in Flutter onboarding (`welcome_screen.dart`) and draft summary (`draft_summary_screen.dart`).
+- [x] Pass all 4 unit tests in `test_hindi_voice.py`.
 
 ### Week 9 — Phase 8: Offline Reliability & Security (P1)
 - [ ] Implement resumable uploads and client draft checkpoints.

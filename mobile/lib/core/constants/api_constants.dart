@@ -11,9 +11,15 @@ class ApiConstants {
   static String draftFields(String draftId) => '/v1/drafts/$draftId/fields';
   static String draftSummary(String draftId) => '/v1/drafts/$draftId/summary';
   static String draftValidate(String draftId) => '/v1/drafts/$draftId/validate';
+  static String draftDagRevalidate(String draftId) => '/v1/drafts/$draftId/dag-revalidate';
   static String draftDocuments(String draftId) => '/v1/drafts/$draftId/documents';
   static String draftReconcile(String draftId) => '/v1/drafts/$draftId/reconcile';
   static String draftConflicts(String draftId) => '/v1/drafts/$draftId/conflicts';
   static String documentExtract(String docId) => '/v1/documents/$docId/extract';
+
+  // Voice Assistant & Guidance
+  static const String voiceTranscribe = '/v1/voice/transcribe';
+  static const String voiceIntent = '/v1/voice/intent';
+  static String voiceGuidance(String draftId) => '/v1/voice/guidance/$draftId';
 }
 

@@ -106,5 +106,39 @@ class ApiClient {
     }
     throw Exception('Failed to fetch draft summary: ${response.body}');
   }
+
+  Future<Map<String, dynamic>> dagRevalidate(String draftId, String fieldName) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl${ApiConstants.draftDagRevalidate(draftId)}?field_name=$fieldName'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to revalidate DAG: ${response.body}');
+  }
+
+  Future<Map<String, dynamic>> queryVoiceIntent(String transcriptHi) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl${ApiConstants.voiceIntent}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'transcript_hi': transcriptHi}),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to classify voice intent: ${response.body}');
+  }
+
+  Future<Map<String, dynamic>> getDraftAudioGuidance(String draftId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl${ApiConstants.voiceGuidance(draftId)}'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to fetch audio guidance: ${response.body}');
+  }
 }
 

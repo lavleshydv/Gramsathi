@@ -34,3 +34,19 @@ def validate_draft(draft_id: str):
 
     return issues
 
+
+@router.post("/v1/drafts/{draft_id}/dag-revalidate")
+def dag_revalidate_field(draft_id: str, field_name: str):
+    """Executes dependency-aware DAG revalidation on dirty descendants only."""
+    draft = store.get_draft(draft_id)
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+
+    field_values = {k: f.candidate_value for k, f in draft.fields.items()}
+    report = rule_engine.revalidate_selective_dag(field_name, field_values)
+
+    return {
+        "draft_id": draft_id,
+        "dag_report": report,
+    }
+

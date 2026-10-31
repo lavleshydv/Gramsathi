@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_client.dart';
 import '../scheme_selection/scheme_selection_screen.dart';
+import '../voice_assistant/voice_assistant_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -57,6 +58,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Text('🌾 GramSathi AI (ग्राम साथी)', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'बोलकर सहायता लें (Voice Assistant)',
+            icon: const Icon(Icons.mic, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const VoiceAssistantScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -116,6 +129,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
 
               const Spacer(),
+
+              // Voice Assistant Button
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const VoiceAssistantScreen()),
+                  );
+                },
+                icon: const Icon(Icons.mic, color: Color(0xFF15803D)),
+                label: const Text('🎙️ बोलकर पूछें (Hindi Voice Assistant)'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                  side: const BorderSide(color: Color(0xFF15803D), width: 1.5),
+                ),
+              ),
+              const SizedBox(height: 12),
 
               // Start Button
               ElevatedButton(

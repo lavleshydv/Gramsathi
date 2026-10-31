@@ -112,6 +112,11 @@ class SchemeRuleEngine:
 
         return issues
 
+    def revalidate_selective_dag(self, changed_field: str, field_values: Dict[str, Any]) -> Dict[str, Any]:
+        """Runs selective DAG evaluation on changed field's downstream dependents only."""
+        from app.rules.dependency_manager import dependency_manager
+        return dependency_manager.execute_selective_revalidation(changed_field, field_values)
+
 
 rule_engine = SchemeRuleEngine()
 
